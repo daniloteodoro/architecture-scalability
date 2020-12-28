@@ -1,0 +1,65 @@
+{
+  "clientId_": "5",
+  "address_": "33 street, 5",
+  "zipCode_": "1234",
+  "city_": "Rotterdam",
+  "state_": "ZH",
+  "country_": "NL",
+  "items_": [
+    {
+      "id_": "6",
+      "product_": {
+        "id_": 7,
+        "name_": "First Product",
+        "price_": 3.5,
+        "stock_": 150,
+        "memoizedIsInitialized": 1,
+        "unknownFields": {
+          "fields": {},
+          "fieldsDescending": {}
+        },
+        "memoizedSize": -1,
+        "memoizedHashCode": 0
+      },
+      "quantity_": 2,
+      "memoizedIsInitialized": 1,
+      "unknownFields": {
+        "fields": {},
+        "fieldsDescending": {}
+      },
+      "memoizedSize": -1,
+      "memoizedHashCode": 0
+    },
+    {
+      "id_": "12",
+      "product_": {
+        "id_": 71,
+        "name_": "Second Product",
+        "price_": 198.98,
+        "stock_": 3,
+        "memoizedIsInitialized": 1,
+        "unknownFields": {
+          "fields": {},
+          "fieldsDescending": {}
+        },
+        "memoizedSize": -1,
+        "memoizedHashCode": 0
+      },
+      "quantity_": 1,
+      "memoizedIsInitialized": 1,
+      "unknownFields": {
+        "fields": {},
+        "fieldsDescending": {}
+      },
+      "memoizedSize": -1,
+      "memoizedHashCode": 0
+    }
+  ],
+  "memoizedIsInitialized": 1,
+  "unknownFields": {
+    "fields": {},
+    "fieldsDescending": {}
+  },
+  "memoizedSize": -1,
+  "memoizedHashCode": 0
+}

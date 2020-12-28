@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-job
+spec:
+  selector:
+    matchLabels:
+      app: checkout-job
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: checkout-job
+        tier: backend
+    spec:
+      containers:
+      - name: container-checkout-job
+        image: $DOCKERHUB_USER/checkout-job:latest
+        ports:
+          - containerPort: 7000
+        env:
+          - name: AMQP_URL
+            value: amqp://guest:guest@rabbitmq
+          - name: ORDER_API_HOST
+            value: order-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  labels:
+    app: logstash
+    role: master
+    tier: backend
+spec:
+#  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      name: main-tcp
+      protocol: TCP
+    - port: 5000
+      targetPort: 5000
+      name: main-udp
+      protocol: UDP
+    - port: 9600
+      targetPort: 9600
+      name: management
+  # Expose ports through the IP below. Another option is to use NodePort (or port-forward, or ELB)
+#  externalIPs:
+#    - 172.17.0.2
+  selector:
+    app: logstash
+    role: master
+    tier: backend

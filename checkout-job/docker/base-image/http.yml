@@ -1,0 +1,13 @@
+# Module: http
+# Docs: https://www.elastic.co/guide/en/beats/metricbeat/7.9/metricbeat-module-http.html
+
+- module: http
+  metricsets:
+    - json
+  period: 1s
+  hosts: ["localhost:7000"]
+  namespace: "shopping_cart"
+  path: "/metrics"
+  method: "GET"
+  json.is_array: true
+  #dedot.enabled: false

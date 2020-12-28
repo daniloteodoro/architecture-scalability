@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "com.scale.order";
+option java_outer_classname = "OrderHandler";
+
+package com.scale.order;
+
+service OrderService {
+
+    rpc createOrder (ShoppingCartDto) returns (OrderDto) {}
+    rpc updateOrderAddress (OrderDto) returns (google.protobuf.Empty) {}
+    rpc confirm (OrderDto) returns (google.protobuf.Empty) {}
+
+}
+
+message ShoppingCartDto {
+    string sessionId = 1;
+    int64 numberOfCustomers = 2;
+    string clientId = 3;
+    string address = 4;
+    string zipCode = 5;
+    string city = 6;
+    string state = 7;
+    string country = 8;
+    repeated OrderItemDto items = 9;
+    google.protobuf.Timestamp cartDateTime = 10;
+    bool isFirst = 11;
+    bool isLast = 12;
+}
+
+message OrderDto {
+    string id = 1;
+    google.protobuf.Timestamp date = 2;
+    repeated OrderItemDto items = 3;
+}
+
+message OrderItemDto {
+    string id = 1;
+    ProductDto product = 2;
+    int32 quantity = 3;
+}
+
+message ProductDto {
+    int64 id = 1;
+    string name = 2;
+    float price = 3;
+    int64 stock = 4;
+}

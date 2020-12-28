@@ -1,0 +1,22 @@
+# If running locally, don't forget to enable the ingress add-on on minikube.
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: cluster-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+#    - host: scale-order.info  # add domain to /etc/hosts pointing to minikube ip
+    - http:
+        paths:
+          - path: /shopping-cart/samples/(.+)
+            backend:
+              serviceName: mgmt
+              servicePort: 9000
+          - path: /
+            backend:
+              serviceName: kibana
+              servicePort: 5601

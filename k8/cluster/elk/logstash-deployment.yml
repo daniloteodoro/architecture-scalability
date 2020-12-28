@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  selector:
+    matchLabels:
+      app: logstash
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: logstash
+        role: master
+        tier: backend
+    spec:
+      containers:
+        - name: container-logstash
+          image: $DOCKERHUB_USER/logstash:latest
+          ports:
+            - containerPort: 5000
+            - containerPort: 9600
+          env:
+            - name: LS_JAVA_OPTS
+              value: -Xmx512m -Xms512m

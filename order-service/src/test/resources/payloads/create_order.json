@@ -1,0 +1,37 @@
+{
+  "sessionId":"e2785135-2511-40ea-88b2-e243847b7128",
+  "createdAt":"2020-11-23T21:14:02.575258Z",
+  "clientId":{
+    "value":"5"
+  },
+  "address":"33 street, 5",
+  "zipCode":"1234",
+  "city":"Rotterdam",
+  "state":"ZH",
+  "country":"NL",
+  "items":[
+    {
+      "id":"6",
+      "product":{
+        "id":7,
+        "name":"First Product",
+        "price":3.5,
+        "inStock":150
+      },
+      "quantity":2
+    },
+    {
+      "id":"12",
+      "product":{
+        "id":55,
+        "name":"Second product",
+        "price":198.98,
+        "inStock":3
+      },
+      "quantity":1
+    }
+  ],
+  "numberOfClientsOnSameSession":1,
+  "isFirst":true,
+  "isLast":true
+}

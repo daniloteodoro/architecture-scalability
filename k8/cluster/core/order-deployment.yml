@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-api
+spec:
+  selector:
+    matchLabels:
+      app: order-api
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: order-api
+        tier: backend
+    spec:
+      containers:
+      - name: container-order-api
+        image: $DOCKERHUB_USER/order-service:latest
+        ports:
+          - containerPort: 8000
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1

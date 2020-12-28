@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+      role: master
+      tier: backend
+#  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+        role: master
+        tier: backend
+    spec:
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: elk-pvc
+      initContainers:
+        - name: fix-volume-owner
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data" ]
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+      containers:
+      - name: container-elasticsearch
+        image: $DOCKERHUB_USER/elasticsearch:latest
+        ports:
+          - containerPort: 9200
+          - containerPort: 9300
+        env:
+          - name: ES_JAVA_OPTS
+            value: -Xmx512m -Xms512m
+          - name: ELASTIC_PASSWORD
+            value: changeme
+          - name: discovery.type
+            value: single-node
+        volumeMounts:
+          - name: data
+            mountPath: /usr/share/elasticsearch/data

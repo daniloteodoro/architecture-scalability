@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mgmt
+spec:
+  selector:
+    matchLabels:
+      app: mgmt
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mgmt
+        tier: backend
+    spec:
+      containers:
+      - name: container-mgmt
+        image: $DOCKERHUB_USER/management-service:latest
+        ports:
+          - containerPort: 9000
+        env:
+          - name: AMQP_URL
+            value: amqp://guest:guest@rabbitmq
+          - name: KIBANA_HOST
+            value: kibana
+          - name: INDEX_CONFIG_FILE
+            value: /kibana-setup/index_and_dashboard.ndjson
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1

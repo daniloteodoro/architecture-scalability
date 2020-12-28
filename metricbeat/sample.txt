@@ -1,0 +1,16 @@
+filter {
+    if [http][shopping_cart][metricset][shopping_cart_finished] > 0 {
+        metrics {
+            meter => "finished_shopping_carts_meter"
+            add_tag => "metric_meter"
+        }
+    }
+}
+filter {
+    if [http][shopping_cart][metricset][shopping_cart_finished] > 0 {
+        metrics {
+            timer => [ "finished_shopping_carts_timer", "%{request_time}" ]
+            add_tag => "metric_timer"
+        }
+    }
+}

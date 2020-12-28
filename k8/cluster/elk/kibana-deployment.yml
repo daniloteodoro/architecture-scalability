@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+spec:
+  selector:
+    matchLabels:
+      app: kibana
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+        role: master
+        tier: backend
+    spec:
+      containers:
+        - name: container-kibana
+          image: $DOCKERHUB_USER/kibana:latest
+          ports:
+            - containerPort: 5601
