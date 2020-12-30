@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -55,7 +54,6 @@ public class GenerateOrderTest {
 
     @Test
     public void givenAnEmptyShoppingCartWhenConvertToOrderThenAnErrorIsThrown() {
-        AtomicReference<ShoppingCart> cartAdded = new AtomicReference<>(null);
         var repo = new OrderRepositoryInMemory();
         var generateOrder = new GenerateOrder(repo);
         var cart = ShoppingCart.builder()

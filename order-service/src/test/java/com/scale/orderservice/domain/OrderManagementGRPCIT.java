@@ -6,7 +6,6 @@ import com.scale.order.application.OrderManagementGRPCController;
 import com.scale.order.domain.model.GenerateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import io.grpc.ManagedChannelBuilder;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +17,6 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 

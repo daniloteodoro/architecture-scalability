@@ -14,6 +14,7 @@ import java.util.UUID;
 public class Order {
 
     @NonNull OrderId id;
+MongoDb: instruct mongo to serialize it in a simpler way e.g. ISO format, see localhost:8081
     @NonNull ZonedDateTime createdAt;
     @NonNull List<OrderItem> items;
 

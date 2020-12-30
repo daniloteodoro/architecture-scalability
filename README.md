@@ -95,3 +95,4 @@ Example using the test domain _scale-order.tk_ with the new record called "apps"
 * Management API: http://apps.scale-order.tk/shopping-cart/samples/10
 
 // TODO: Add dashboard picture. Show how to switch between architecture types.
+// Create deployment for MongoDb
