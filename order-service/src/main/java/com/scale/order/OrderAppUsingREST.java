@@ -8,8 +8,8 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.scale.order.application.OrderManagementRESTController;
 import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.infrastructure.config.ZonedDateTimeCodec;
 import com.scale.order.infrastructure.configuration.SerializerConfig;
-import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import com.scale.order.infrastructure.repository.OrderRepositoryMongo;
 import io.javalin.Javalin;
 import io.javalin.plugin.json.JavalinJson;
@@ -19,8 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -30,10 +29,18 @@ public class OrderAppUsingREST {
     private Javalin app = null;
 
     public static OrderAppUsingREST defaultSetup() {
+
         // TODO: Move to a dedicated Mongo setup class
         ConnectionString connectionString = new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://orderservice:s89fsj&2#@127.0.0.1/admin"));
-        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
-        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+        CodecRegistry pojoCodecRegistry = fromProviders(
+                PojoCodecProvider.builder()
+                    .automatic(true)
+                    .build()
+        );
+        CodecRegistry codecRegistry = fromRegistries(
+                fromCodecs(new ZonedDateTimeCodec()),
+                MongoClientSettings.getDefaultCodecRegistry(),
+                pojoCodecRegistry);
 
         MongoClientSettings clientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)

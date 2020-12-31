@@ -26,7 +26,7 @@ public class OrderRepositoryMongo implements OrderRepository {
 
     @Override
     public Optional<Order> load(@NonNull Order.OrderId id) {
-        var possibleOrder = orders.find(eq("id", id.value()))
+        var possibleOrder = orders.find(eq("_id.value", id.value()))
                 .first();
         return Optional.ofNullable(possibleOrder);
     }

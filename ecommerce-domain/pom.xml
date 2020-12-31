@@ -15,4 +15,10 @@
     <name>domain</name>
     <description>All domain models shared with the projects</description>
 
+    <properties>
+    </properties>
+
+    <dependencies>
+    </dependencies>
+
 </project>
