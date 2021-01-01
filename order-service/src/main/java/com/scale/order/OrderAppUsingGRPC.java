@@ -1,7 +1,8 @@
 package com.scale.order;
 
-import com.scale.order.application.OrderManagementGRPCController;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.controller.OrderManagementGRPCController;
+import com.scale.order.application.usecase.GenerateOrder;
+import com.scale.order.application.usecase.UpdateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -22,7 +23,8 @@ public class OrderAppUsingGRPC {
     public static OrderAppUsingGRPC defaultSetup() {
         var orderRepository = new OrderRepositoryInMemory();
         var generateOrder = new GenerateOrder(orderRepository);
-        var gRPCController = new OrderManagementGRPCController(generateOrder, orderRepository);
+        var updateOrder = new UpdateOrder(orderRepository);
+        var gRPCController = new OrderManagementGRPCController(generateOrder, updateOrder, orderRepository);
 
         return new OrderAppUsingGRPC(gRPCController);
     }

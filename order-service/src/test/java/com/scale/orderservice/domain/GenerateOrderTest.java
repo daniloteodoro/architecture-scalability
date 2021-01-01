@@ -3,7 +3,7 @@ package com.scale.orderservice.domain;
 import com.scale.domain.CannotConvertShoppingCart;
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.usecase.GenerateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import org.junit.jupiter.api.Test;
 

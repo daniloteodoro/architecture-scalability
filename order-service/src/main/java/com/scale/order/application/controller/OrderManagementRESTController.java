@@ -1,8 +1,10 @@
-package com.scale.order.application;
+package com.scale.order.application.controller;
 
 import com.google.gson.Gson;
+import com.scale.domain.Order;
 import com.scale.domain.ShoppingCart;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.usecase.GenerateOrder;
+import com.scale.order.application.usecase.UpdateOrder;
 import com.scale.order.domain.repository.OrderRepository;
 import com.scale.order.infrastructure.configuration.SerializerConfig;
 import io.javalin.http.Context;
@@ -15,6 +17,7 @@ import org.eclipse.jetty.http.HttpStatus;
 @Slf4j
 public class OrderManagementRESTController {
     @NonNull GenerateOrder generateOrder;
+    @NonNull UpdateOrder updateOrder;
     @NonNull OrderRepository orderRepository;
 
     private final Gson gson = SerializerConfig.buildSerializer();
@@ -32,8 +35,22 @@ public class OrderManagementRESTController {
     }
 
     public void handleUpdateOrderAddress(Context context) {
-        log.info("Order address was updated using REST");
+        String orderId = context.pathParam("id", String.class).getOrNull();
+        if (orderId == null || orderId.isBlank()) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Order id is mandatory");
+            return;
+        }
+        String newAddress = context.body();
+        if (newAddress.isBlank()) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Address cannot be blank");
+            return;
+        }
 
+        updateOrder.changeAddress(Order.OrderId.of(orderId), newAddress);
+
+        log.info("Order address was updated using REST");
         context.status(HttpStatus.NO_CONTENT_204);
     }
 

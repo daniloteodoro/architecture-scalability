@@ -1,4 +1,4 @@
-package com.scale.order.application;
+package com.scale.order.application.controller;
 
 import com.google.protobuf.Empty;
 import com.google.protobuf.Timestamp;
@@ -9,12 +9,15 @@ import com.scale.order.OrderDto;
 import com.scale.order.OrderItemDto;
 import com.scale.order.OrderServiceGrpc;
 import com.scale.order.ShoppingCartDto;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.usecase.GenerateOrder;
+import com.scale.order.application.usecase.UpdateOrder;
 import com.scale.order.domain.repository.OrderRepository;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderManagementGRPCController extends OrderServiceGrpc.OrderServiceImplBase {
     @NonNull GenerateOrder generateOrder;
+    @NonNull UpdateOrder updateOrder;
     @NonNull OrderRepository orderRepository;
 
     @Override
@@ -40,7 +44,24 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
 
     @Override
     public void updateOrderAddress(OrderDto request, StreamObserver<Empty> responseObserver) {
-//        System.out.println("update the order address");
+        if (request.getId().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Order id is mandatory")
+                    .asRuntimeException());
+            return;
+        }
+        String newAddress = "";
+        if (newAddress.isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Address cannot be blank")
+                    .asRuntimeException());
+            return;
+        }
+
+        updateOrder.changeAddress(Order.OrderId.of(request.getId()), newAddress);
+
+        log.info("Order address was updated using gRPC");
+
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }

@@ -6,8 +6,9 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import com.scale.order.application.OrderManagementRESTController;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.controller.OrderManagementRESTController;
+import com.scale.order.application.usecase.GenerateOrder;
+import com.scale.order.application.usecase.UpdateOrder;
 import com.scale.order.infrastructure.config.ZonedDateTimeCodec;
 import com.scale.order.infrastructure.configuration.SerializerConfig;
 import com.scale.order.infrastructure.repository.OrderRepositoryMongo;
@@ -52,7 +53,8 @@ public class OrderAppUsingREST {
 
         var orderRepository = new OrderRepositoryMongo(db);
         var generateOrder = new GenerateOrder(orderRepository);
-        var restController = new OrderManagementRESTController(generateOrder, orderRepository);
+        var updateOrder = new UpdateOrder(orderRepository);
+        var restController = new OrderManagementRESTController(generateOrder, updateOrder, orderRepository);
 
         return new OrderAppUsingREST(restController);
     }

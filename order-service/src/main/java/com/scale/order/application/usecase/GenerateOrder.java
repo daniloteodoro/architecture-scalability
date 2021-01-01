@@ -1,19 +1,16 @@
-package com.scale.order.domain.model;
+package com.scale.order.application.usecase;
 
 import com.scale.domain.Order;
 import com.scale.domain.ShoppingCart;
 import com.scale.order.domain.repository.OrderRepository;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
-
+@RequiredArgsConstructor
+@Slf4j
 public class GenerateOrder {
-
-    private final OrderRepository orderRepository;
-
-    public GenerateOrder(OrderRepository orderRepository) {
-        super();
-        this.orderRepository = Objects.requireNonNull(orderRepository, "Order repository is mandatory");
-    }
+    @NonNull OrderRepository orderRepository;
 
     public Order fromShoppingCart(ShoppingCart cart) {
         // TODO: Should receive a command containing dto with shopping cart data
