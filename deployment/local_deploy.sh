@@ -5,16 +5,22 @@ cd "$(dirname "$0")" || exit 1
 
 # start rabbit-mq
 cd ../checkout-job/docker || exit 1
-docker-compose down &&
-  docker-compose up --build -d
+docker-compose down
+docker-compose up --build -d
 cd - || exit 1
-echo "Rabbit-mq getting started"
+echo "Rabbit-mq is getting started"
+
+cd ../order-service/docker || exit 1
+docker-compose down
+docker-compose up --build -d
+cd - || exit 1
+echo "MongoDb for the Order service is getting started"
 
 cd ../elk || exit 1
-docker-compose down &&
-  docker-compose up --build -d
+docker-compose down
+docker-compose up --build -d
 cd - || exit 1
-echo "ELK getting started"
+echo "ELK is getting started"
 
 if ! sudo service metricbeat start;
 then
