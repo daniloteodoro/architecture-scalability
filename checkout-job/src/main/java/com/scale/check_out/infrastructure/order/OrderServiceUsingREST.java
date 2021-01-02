@@ -31,7 +31,7 @@ public class OrderServiceUsingREST implements ConvertShoppingCart, UpdateOrder, 
     @Override
     public void changeAddress(Order order) {
         var response = Unirest.put(String.format("http://%s:%d/orders/%s/address", serviceHost, servicePort, order.getId().value()))
-                .body("Address updated")
+                .body("Address updated from REST service")
                 .asString();
 
         if (response.getStatus() != HttpStatus.NO_CONTENT)

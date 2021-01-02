@@ -31,12 +31,17 @@ public class OrderServiceUsingGRPC implements ConvertShoppingCart, UpdateOrder, 
 
     @Override
     public void changeAddress(Order order) {
-        orderService.updateOrderAddress(toOrderDto(order));
+        orderService.updateOrderAddress(AddressChange.newBuilder()
+            .setId(order.getId().value())
+            .setAddress("Address updated from gRPC service")
+            .build());
     }
 
     @Override
     public void handle(Order order) {
-        orderService.confirm(toOrderDto(order));
+        orderService.confirm(OrderId.newBuilder()
+            .setId(order.getId().value())
+            .build());
     }
 
     private ShoppingCartDto toShoppingCartDto(ShoppingCart shoppingCart) {

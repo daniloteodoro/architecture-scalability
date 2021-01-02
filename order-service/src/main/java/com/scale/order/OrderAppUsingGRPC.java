@@ -1,9 +1,12 @@
 package com.scale.order;
 
 import com.scale.order.application.controller.OrderManagementGRPCController;
+import com.scale.order.application.usecases.ConfirmOrder;
 import com.scale.order.application.usecases.GenerateOrder;
 import com.scale.order.application.usecases.UpdateOrder;
+import com.scale.order.infrastructure.config.MongoConfig;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
+import com.scale.order.infrastructure.repository.OrderRepositoryMongo;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import lombok.NonNull;
@@ -21,10 +24,13 @@ public class OrderAppUsingGRPC {
     private Server server;
 
     public static OrderAppUsingGRPC defaultSetup() {
-        var orderRepository = new OrderRepositoryInMemory();
+        var dbConfig = new MongoConfig();
+
+        var orderRepository = new OrderRepositoryMongo(dbConfig.getDatabase());
         var generateOrder = new GenerateOrder(orderRepository);
         var updateOrder = new UpdateOrder(orderRepository);
-        var gRPCController = new OrderManagementGRPCController(generateOrder, updateOrder, orderRepository);
+        var confirmOrder = new ConfirmOrder(orderRepository);
+        var gRPCController = new OrderManagementGRPCController(generateOrder, updateOrder, confirmOrder, orderRepository);
 
         return new OrderAppUsingGRPC(gRPCController);
     }

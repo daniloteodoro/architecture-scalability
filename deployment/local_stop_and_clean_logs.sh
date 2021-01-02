@@ -26,3 +26,5 @@ fi
 echo "Stopping services"
 pgrep -f dependencies.jar | xargs kill
 echo "Done"
+
+rm order.log checkout.log management.log

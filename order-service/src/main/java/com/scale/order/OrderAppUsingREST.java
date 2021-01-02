@@ -10,6 +10,7 @@ import com.scale.order.application.controller.OrderManagementRESTController;
 import com.scale.order.application.usecases.ConfirmOrder;
 import com.scale.order.application.usecases.GenerateOrder;
 import com.scale.order.application.usecases.UpdateOrder;
+import com.scale.order.infrastructure.config.MongoConfig;
 import com.scale.order.infrastructure.config.ZonedDateTimeCodec;
 import com.scale.order.infrastructure.configuration.SerializerConfig;
 import com.scale.order.infrastructure.repository.OrderRepositoryMongo;
@@ -32,27 +33,9 @@ public class OrderAppUsingREST {
 
     public static OrderAppUsingREST defaultSetup() {
 
-        // TODO: Move to a dedicated Mongo setup class
-        ConnectionString connectionString = new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://orderservice:s89fsj&2#@127.0.0.1/admin"));
-        CodecRegistry pojoCodecRegistry = fromProviders(
-                PojoCodecProvider.builder()
-                    .automatic(true)
-                    .build()
-        );
-        CodecRegistry codecRegistry = fromRegistries(
-                fromCodecs(new ZonedDateTimeCodec()),
-                MongoClientSettings.getDefaultCodecRegistry(),
-                pojoCodecRegistry);
+        var dbConfig = new MongoConfig();
 
-        MongoClientSettings clientSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .codecRegistry(codecRegistry)
-                .build();
-
-        MongoClient mongoClient = MongoClients.create(clientSettings);
-        MongoDatabase db = mongoClient.getDatabase("order_db");
-
-        var orderRepository = new OrderRepositoryMongo(db);
+        var orderRepository = new OrderRepositoryMongo(dbConfig.getDatabase());
         var generateOrder = new GenerateOrder(orderRepository);
         var updateOrder = new UpdateOrder(orderRepository);
         var confirmOrder = new ConfirmOrder(orderRepository);
