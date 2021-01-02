@@ -2,18 +2,20 @@ version: "3.7"
 
 services:
 
-  mongo:
+  order-mongo:
     image: mongo
     ports:
       - 27017:27017
     volumes:
-        - storage:/data/db
+        - order-storage:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: orderservice
       MONGO_INITDB_ROOT_PASSWORD: s89fsj&2#
     restart: on-failure
+    networks:
+      - order-network
 
-  mongo-express:
+  order-mongo-express:
     image: mongo-express
     restart: on-failure
     ports:
@@ -21,7 +23,12 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: orderservice
       ME_CONFIG_MONGODB_ADMINPASSWORD: s89fsj&2#
-      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_SERVER: order-mongo
+    networks:
+      - order-network
 
 volumes:
-  storage:
+  order-storage:
+
+networks:
+  order-network:
