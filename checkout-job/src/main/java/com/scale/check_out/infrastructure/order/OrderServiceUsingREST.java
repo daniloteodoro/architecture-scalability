@@ -3,9 +3,7 @@ package com.scale.check_out.infrastructure.order;
 import com.scale.check_out.domain.model.ConfirmOrder;
 import com.scale.check_out.domain.model.ConvertShoppingCart;
 import com.scale.check_out.domain.model.UpdateOrder;
-import com.scale.domain.CannotCreateOrder;
-import com.scale.domain.Order;
-import com.scale.domain.ShoppingCart;
+import com.scale.domain.*;
 import kong.unirest.HttpStatus;
 import kong.unirest.Unirest;
 import lombok.NonNull;
@@ -32,12 +30,21 @@ public class OrderServiceUsingREST implements ConvertShoppingCart, UpdateOrder, 
 
     @Override
     public void changeAddress(Order order) {
-        System.out.println("Not ready yet");
+        var response = Unirest.put(String.format("http://%s:%d/orders/%s/address", serviceHost, servicePort, order.getId().value()))
+                .body("Address updated")
+                .asString();
+
+        if (response.getStatus() != HttpStatus.NO_CONTENT)
+            throw new CannotUpdateOrder(String.format("Error %d updating order's address", response.getStatus()));
     }
 
     @Override
     public void handle(Order order) {
-        System.out.println("Not ready yet");
+        var response = Unirest.put(String.format("http://%s:%d/orders/%s/confirm", serviceHost, servicePort, order.getId().value()))
+                .asString();
+
+        if (response.getStatus() != HttpStatus.NO_CONTENT)
+            throw new CannotConfirmOrder(String.format("Error %d confirming order", response.getStatus()));
     }
 
 }
