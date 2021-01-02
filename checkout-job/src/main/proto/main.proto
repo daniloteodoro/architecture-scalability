@@ -12,8 +12,8 @@ package com.scale.order;
 service OrderService {
 
     rpc createOrder (ShoppingCartDto) returns (OrderDto) {}
-    rpc updateOrderAddress (OrderDto) returns (google.protobuf.Empty) {}
-    rpc confirm (OrderDto) returns (google.protobuf.Empty) {}
+    rpc updateOrderAddress (AddressChange) returns (google.protobuf.Empty) {}
+    rpc confirm (OrderId) returns (google.protobuf.Empty) {}
 
 }
 
@@ -49,4 +49,13 @@ message ProductDto {
     string name = 2;
     float price = 3;
     int64 stock = 4;
+}
+
+message AddressChange {
+    string id = 1;
+    string address = 2;
+}
+
+message OrderId {
+    string id = 1;
 }

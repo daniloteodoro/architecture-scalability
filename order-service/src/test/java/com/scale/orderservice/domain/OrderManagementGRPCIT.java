@@ -2,11 +2,12 @@ package com.scale.orderservice.domain;
 
 import com.google.protobuf.Timestamp;
 import com.scale.order.*;
-import com.scale.order.application.OrderManagementGRPCController;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.application.controller.OrderManagementGRPCController;
+import com.scale.order.application.usecases.ConfirmOrder;
+import com.scale.order.application.usecases.GenerateOrder;
+import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import io.grpc.ManagedChannelBuilder;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,6 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -29,7 +29,9 @@ public class OrderManagementGRPCIT {
     static void setup() throws IOException, InterruptedException {
         var orderRepository = new OrderRepositoryInMemory();
         var generateOrder = new GenerateOrder(orderRepository);
-        var gRPCController = new OrderManagementGRPCController(generateOrder, orderRepository);
+        var updateOrder = new UpdateOrder(orderRepository);
+        var confirmOrder = new ConfirmOrder(orderRepository);
+        var gRPCController = new OrderManagementGRPCController(generateOrder, updateOrder, confirmOrder, orderRepository);
 
         OrderAppUsingGRPC app = new OrderAppUsingGRPC(gRPCController);
         app.startOnPort(DEFAULT_PORT, false);

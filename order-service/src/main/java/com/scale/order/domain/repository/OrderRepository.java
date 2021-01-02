@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface OrderRepository {
     void store(Order order);
+    void update(Order order);
     Optional<Order> load(Order.OrderId id);
 }

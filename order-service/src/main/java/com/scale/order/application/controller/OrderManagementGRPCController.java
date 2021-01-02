@@ -1,16 +1,16 @@
-package com.scale.order.application;
+package com.scale.order.application.controller;
 
 import com.google.protobuf.Empty;
 import com.google.protobuf.Timestamp;
 import com.scale.domain.Order;
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;
-import com.scale.order.OrderDto;
-import com.scale.order.OrderItemDto;
-import com.scale.order.OrderServiceGrpc;
-import com.scale.order.ShoppingCartDto;
-import com.scale.order.domain.model.GenerateOrder;
+import com.scale.order.*;
+import com.scale.order.application.usecases.ConfirmOrder;
+import com.scale.order.application.usecases.GenerateOrder;
+import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.domain.repository.OrderRepository;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderManagementGRPCController extends OrderServiceGrpc.OrderServiceImplBase {
     @NonNull GenerateOrder generateOrder;
+    @NonNull UpdateOrder updateOrder;
+    @NonNull ConfirmOrder confirmOrder;
     @NonNull OrderRepository orderRepository;
 
     @Override
@@ -39,15 +41,41 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
     }
 
     @Override
-    public void updateOrderAddress(OrderDto request, StreamObserver<Empty> responseObserver) {
-//        System.out.println("update the order address");
+    public void updateOrderAddress(AddressChange request, StreamObserver<Empty> responseObserver) {
+        if (request.getId().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Order id is mandatory")
+                    .asRuntimeException());
+            return;
+        }
+        if (request.getAddress().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Address cannot be blank")
+                    .asRuntimeException());
+            return;
+        }
+
+        updateOrder.changeAddress(Order.OrderId.of(request.getId()), request.getAddress());
+
+        log.info("Order address was updated using gRPC");
+
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }
 
     @Override
-    public void confirm(OrderDto request, StreamObserver<Empty> responseObserver) {
-//        System.out.println("order is confirmed!");
+    public void confirm(OrderId request, StreamObserver<Empty> responseObserver) {
+        if (request.getId().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Order id is mandatory")
+                    .asRuntimeException());
+            return;
+        }
+
+        confirmOrder.withId(Order.OrderId.of(request.getId()));
+
+        log.info("Order {} was confirmed using gRPC", request.getId());
+
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }

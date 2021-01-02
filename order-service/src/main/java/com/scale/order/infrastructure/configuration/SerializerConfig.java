@@ -17,11 +17,18 @@ public class SerializerConfig {
                 .registerTypeAdapter(ZonedDateTime.class, new TypeAdapter<ZonedDateTime>() {
                     @Override
                     public void write(JsonWriter out, ZonedDateTime value) throws IOException {
-                        out.value(value.toString());
+                        if (value != null)
+                            out.value(value.toString());
+                        else
+                            out.nullValue();
                     }
                     @Override
                     public ZonedDateTime read(JsonReader in) throws IOException {
-                        return ZonedDateTime.parse(in.nextString());
+                        var value = in.nextString();
+                        if (value == null || value.isBlank())
+                            return null;
+
+                        return ZonedDateTime.parse(value);
                     }
                 })
                 .enableComplexMapKeySerialization()
