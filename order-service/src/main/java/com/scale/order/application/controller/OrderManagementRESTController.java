@@ -3,6 +3,7 @@ package com.scale.order.application.controller;
 import com.google.gson.Gson;
 import com.scale.domain.Order;
 import com.scale.domain.ShoppingCart;
+import com.scale.order.application.usecases.ConfirmOrder;
 import com.scale.order.application.usecases.GenerateOrder;
 import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.domain.repository.OrderRepository;
@@ -18,6 +19,7 @@ import org.eclipse.jetty.http.HttpStatus;
 public class OrderManagementRESTController {
     @NonNull GenerateOrder generateOrder;
     @NonNull UpdateOrder updateOrder;
+    @NonNull ConfirmOrder confirmOrder;
     @NonNull OrderRepository orderRepository;
 
     private final Gson gson = SerializerConfig.buildSerializer();
@@ -55,8 +57,16 @@ public class OrderManagementRESTController {
     }
 
     public void handleConfirm(Context context) {
-        log.info("Order {} was confirmed using REST", 12345);
+        String orderId = context.pathParam("id", String.class).getOrNull();
+        if (orderId == null || orderId.isBlank()) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Order id is mandatory");
+            return;
+        }
 
+        confirmOrder.withId(Order.OrderId.of(orderId));
+
+        log.info("Order {} was confirmed using REST", orderId);
         context.status(HttpStatus.NO_CONTENT_204);
     }
 

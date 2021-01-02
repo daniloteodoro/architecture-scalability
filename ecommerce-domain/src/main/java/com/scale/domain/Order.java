@@ -3,6 +3,7 @@ package com.scale.domain;
 import lombok.*;
 import lombok.experimental.NonFinal;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -12,17 +13,19 @@ import java.util.UUID;
 @Value
 public class Order {
     public static final String NO_ADDRESS = "";
+    public static final ZonedDateTime UNCONFIRMED = null;
 
     @NonNull OrderId id;
     @NonNull ZonedDateTime createdAt;
     @NonNull List<OrderItem> items;
     @NonFinal @Setter String fullAddress;
+    @NonFinal ZonedDateTime confirmedAt;
 
     public static Order with(ZonedDateTime dateTime, List<OrderItem> items) {
-        return new Order(OrderId.generateNew(), dateTime, items, NO_ADDRESS);
+        return new Order(OrderId.generateNew(), dateTime, items, NO_ADDRESS, UNCONFIRMED);
     }
 
-    public Order(OrderId id, ZonedDateTime dateTime, List<OrderItem> items, String fullAddress) {
+    public Order(OrderId id, ZonedDateTime dateTime, List<OrderItem> items, String fullAddress, ZonedDateTime confirmedAt) {
         // TODO: Process discounts here
         if (items == null || items.isEmpty())
             throw new CannotCreateOrder("Cannot create order without items");
@@ -30,6 +33,17 @@ public class Order {
         this.createdAt = dateTime;
         this.items = items;
         this.fullAddress = fullAddress;
+        this.confirmedAt = confirmedAt;
+    }
+
+    public void confirm() {
+        if (items.isEmpty())
+            throw new CannotConfirmOrder(String.format("Order %s does not have any items", this.id));
+        if (fullAddress == null || fullAddress.isBlank())
+            throw new CannotConfirmOrder(String.format("Order %s does not have a delivery address", this.id));
+        if (confirmedAt != null)
+            throw new CannotConfirmOrder(String.format("Order %s is already confirmed", this.id));
+        this.confirmedAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 
     @Builder

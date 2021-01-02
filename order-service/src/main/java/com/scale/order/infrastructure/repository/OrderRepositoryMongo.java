@@ -40,6 +40,7 @@ public class OrderRepositoryMongo implements OrderRepository {
         return new Document("_id", order.getId().value())
                 .append("created_at", order.getCreatedAt().toString())
                 .append("full_address", order.getFullAddress())
+                .append("confirmed_at", order.getConfirmedAt() != null ? order.getConfirmedAt().toString() : null)
                 .append("items", order.getItems().stream()
                         .map(this::serializeItem)
                         .collect(Collectors.toList()));
@@ -66,6 +67,7 @@ public class OrderRepositoryMongo implements OrderRepository {
                 .id(Order.OrderId.of(doc.getString("_id")))
                 .createdAt(ZonedDateTime.parse(doc.getString("created_at")))
                 .fullAddress(doc.getString("full_address"))
+                .confirmedAt(doc.get("confirmed_at") != null ? ZonedDateTime.parse(doc.getString("confirmed_at")) : null)
                 .items(items.stream()
                         .map(this::deserializeItem)
                         .collect(Collectors.toList()))
@@ -91,7 +93,7 @@ public class OrderRepositoryMongo implements OrderRepository {
 
     @Override
     public void update(Order order) {
-        if (orders.replaceOne(findById(order.getId()), serializeOrder(order)).getModifiedCount() <= 0)
+        if (orders.replaceOne(findById(order.getId()), serializeOrder(order)).getMatchedCount() <= 0)
             throw new OrderNotFound("Could not find order to update: " + order.getId().value());
         log.info("Order {} was updated in Mongo", order.getId());
     }

@@ -2,6 +2,7 @@ package com.scale.orderservice.domain;
 
 import com.scale.order.OrderAppUsingREST;
 import com.scale.order.application.controller.OrderManagementRESTController;
+import com.scale.order.application.usecases.ConfirmOrder;
 import com.scale.order.application.usecases.GenerateOrder;
 import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
@@ -31,7 +32,8 @@ public class OrderManagementRESTIT {
         var orderRepository = new OrderRepositoryInMemory();
         var generateOrder = new GenerateOrder(orderRepository);
         var updateOrder = new UpdateOrder(orderRepository);
-        var restController = new OrderManagementRESTController(generateOrder, updateOrder, orderRepository);
+        var confirmOrder = new ConfirmOrder(orderRepository);
+        var restController = new OrderManagementRESTController(generateOrder, updateOrder, confirmOrder, orderRepository);
 
         app = new OrderAppUsingREST(restController);
         app.startOnPort(DEFAULT_PORT);
