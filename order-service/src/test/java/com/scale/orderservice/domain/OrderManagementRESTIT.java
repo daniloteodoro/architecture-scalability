@@ -2,8 +2,8 @@ package com.scale.orderservice.domain;
 
 import com.scale.order.OrderAppUsingREST;
 import com.scale.order.application.controller.OrderManagementRESTController;
-import com.scale.order.application.usecase.GenerateOrder;
-import com.scale.order.application.usecase.UpdateOrder;
+import com.scale.order.application.usecases.GenerateOrder;
+import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.infrastructure.repository.OrderRepositoryInMemory;
 import io.restassured.RestAssured;
 import org.apache.http.HttpStatus;

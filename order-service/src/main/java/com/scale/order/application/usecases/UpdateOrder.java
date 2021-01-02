@@ -1,4 +1,4 @@
-package com.scale.order.application.usecase;
+package com.scale.order.application.usecases;
 
 import com.scale.domain.Order;
 import com.scale.order.domain.repository.OrderRepository;
@@ -15,6 +15,7 @@ public class UpdateOrder {
         var order = orderRepository.load(id)
                 .orElseThrow(() -> new OrderNotFound(id));
         // TODO: set address using domain object, log possible address changes
+        order.setFullAddress(newAddress);
         orderRepository.update(order);
     }
 

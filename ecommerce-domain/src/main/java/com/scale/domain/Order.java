@@ -1,8 +1,7 @@
 package com.scale.domain;
 
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.Value;
+import lombok.*;
+import lombok.experimental.NonFinal;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -12,16 +11,25 @@ import java.util.UUID;
 @Builder
 @Value
 public class Order {
+    public static final String NO_ADDRESS = "";
 
     @NonNull OrderId id;
     @NonNull ZonedDateTime createdAt;
     @NonNull List<OrderItem> items;
+    @NonFinal @Setter String fullAddress;
 
     public static Order with(ZonedDateTime dateTime, List<OrderItem> items) {
+        return new Order(OrderId.generateNew(), dateTime, items, NO_ADDRESS);
+    }
+
+    public Order(OrderId id, ZonedDateTime dateTime, List<OrderItem> items, String fullAddress) {
         // TODO: Process discounts here
-        if (items.isEmpty())
+        if (items == null || items.isEmpty())
             throw new CannotCreateOrder("Cannot create order without items");
-        return new Order(OrderId.generateNew(), dateTime, items);
+        this.id = id;
+        this.createdAt = dateTime;
+        this.items = items;
+        this.fullAddress = fullAddress;
     }
 
     @Builder
@@ -30,6 +38,17 @@ public class Order {
         @NonNull String id;
         @NonNull Product product;
         @NonNull Integer quantity;
+
+        public OrderItem(@NonNull String id, @NonNull Product product, @NonNull Integer quantity) {
+            if (id.isBlank())
+                throw new CannotCreateOrder("Order item 'id' cannot be blank");
+            if (quantity <= 0)
+                throw new CannotCreateOrder("Quantity must be greater than zero for item " + id);
+
+            this.id = id;
+            this.product = product;
+            this.quantity = quantity;
+        }
     }
 
     @Value

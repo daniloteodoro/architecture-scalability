@@ -9,15 +9,14 @@ import com.scale.order.OrderDto;
 import com.scale.order.OrderItemDto;
 import com.scale.order.OrderServiceGrpc;
 import com.scale.order.ShoppingCartDto;
-import com.scale.order.application.usecase.GenerateOrder;
-import com.scale.order.application.usecase.UpdateOrder;
+import com.scale.order.application.usecases.GenerateOrder;
+import com.scale.order.application.usecases.UpdateOrder;
 import com.scale.order.domain.repository.OrderRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;

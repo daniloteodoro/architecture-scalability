@@ -1,8 +1,7 @@
 package com.scale.order.infrastructure.repository;
 
 import com.scale.domain.Order;
-import com.scale.order.application.exceptions.OrderError;
-import com.scale.order.application.usecase.OrderNotFound;
+import com.scale.order.application.usecases.OrderNotFound;
 import com.scale.order.domain.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 

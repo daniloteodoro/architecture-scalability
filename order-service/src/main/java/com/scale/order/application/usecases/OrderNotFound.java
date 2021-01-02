@@ -1,4 +1,4 @@
-package com.scale.order.application.usecase;
+package com.scale.order.application.usecases;
 
 import com.scale.domain.Order;
 
