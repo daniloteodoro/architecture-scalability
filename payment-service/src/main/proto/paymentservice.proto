@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "com.scale.payment";
+option java_outer_classname = "PaymentHandler";
+
+package com.scale.payment;
+
+service PaymentService {
+    rpc pay(PaymentRequestMessage) returns (OrderPaymentDetailMessage) {}
+}
+
+message PaymentRequestMessage {
+    // Only in Euros
+    double amount = 1;
+    string orderId = 2;
+    CardDetailsMessage card = 3;
+}
+
+message CardDetailsMessage {
+    string number = 1;
+    int32 digit = 2;
+    // MM/YYYY
+    string expirationDate = 3;
+}
+
+message OrderPaymentDetailMessage {
+    oneof receiptOrWarning {
+        PaymentReceiptMessage receipt = 1;
+        PaymentReceiptMessage orderAlreadyPayed = 2;
+        // The other cases will be handled as errors
+    }
+}
+
+message PaymentReceiptMessage {
+    string orderId = 1;
+    double amount = 2;
+    string receipt = 3;
+    google.protobuf.Timestamp time = 4;
+}
