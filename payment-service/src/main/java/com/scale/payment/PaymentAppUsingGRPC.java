@@ -3,7 +3,7 @@ package com.scale.payment;
 import com.scale.payment.application.controller.PaymentGRPCController;
 import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryMongo;
-import com.scale.payment.infrastructure.config.MongoConfig;
+import com.scale.payment.infrastructure.configuration.MongoConfig;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import lombok.NonNull;

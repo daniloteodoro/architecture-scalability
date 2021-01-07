@@ -23,7 +23,7 @@ public class PayOrder {
      * @return The receipt of the payment operation.
      */
     public Card.Receipt using(Card card, Order.OrderId id, Money amount) {
-        var possiblePayment = paymentRepository.getReceipt(id, amount);
+        var possiblePayment = paymentRepository.findReceipt(id, amount);
         if (possiblePayment.isPresent()) {
             return possiblePayment.get();
         }

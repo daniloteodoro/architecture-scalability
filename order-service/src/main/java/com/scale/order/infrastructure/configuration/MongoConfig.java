@@ -1,4 +1,4 @@
-package com.scale.payment.infrastructure.config;
+package com.scale.order.infrastructure.configuration;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -8,16 +8,14 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
-// TODO: This class can be shared among modules
 public class MongoConfig {
 
     public MongoDatabase getDatabase() {
         // Get values from config file
         ConnectionString connectionString =
-                new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://paymentservice:ps89fsj&2#@127.0.0.1:27018/admin"));
+                new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://orderservice:s89fsj&2#@127.0.0.1/admin"));
 
         // TODO: Remove automatic POJO mappers
         CodecRegistry pojoCodecRegistry = fromProviders(
@@ -35,7 +33,7 @@ public class MongoConfig {
                 .build();
 
         MongoClient mongoClient = MongoClients.create(clientSettings);
-        return mongoClient.getDatabase("payment_db");
+        return mongoClient.getDatabase("order_db");
     }
 
 }

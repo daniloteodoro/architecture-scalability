@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface PaymentRepository {
     void add(Card.Receipt receipt);
-    Optional<Card.Receipt> getReceipt(Order.OrderId id, Money amount);
+    Optional<Card.Receipt> findReceipt(Order.OrderId id, Money amount);
+    Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt);
 }

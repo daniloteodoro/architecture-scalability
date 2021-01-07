@@ -24,7 +24,7 @@ public class PaymentRepositoryInMemory implements PaymentRepository {
     }
 
     @Override
-    public Optional<Card.Receipt> getReceipt(Order.OrderId id, Money amount) {
+    public Optional<Card.Receipt> findReceipt(Order.OrderId id, Money amount) {
         if (!receipts.containsKey(id.value()))
             return Optional.empty();
         var entry = receipts.get(id.value());
@@ -33,4 +33,8 @@ public class PaymentRepositoryInMemory implements PaymentRepository {
         return Optional.of(entry.get(amount.getValue().doubleValue()));
     }
 
+    @Override
+    public Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt) {
+        return Optional.empty();
+    }
 }
