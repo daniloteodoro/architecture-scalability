@@ -13,8 +13,8 @@ public class Money {
     @NonNull BigDecimal value;
 
     private Money(@NonNull BigDecimal val) {
-        if (val.doubleValue() <= 0)
-            throw new InvalidMoneyAmount("Value must be greater than zero");
+        if (val.doubleValue() < 0)
+            throw new InvalidMoneyAmount("Value must be greater than or equal to zero");
         this.value = val;
     }
 
