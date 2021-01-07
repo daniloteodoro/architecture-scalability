@@ -14,7 +14,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 // TODO: This class can be shared among modules
 public class MongoConfig {
 
-    public MongoDatabase getDatabase() {
+    public MongoClient getClient() {
         // Get values from config file
         ConnectionString connectionString =
                 new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://paymentservice:ps89fsj&2#@127.0.0.1:27018/admin"));
@@ -34,8 +34,11 @@ public class MongoConfig {
                 .codecRegistry(codecRegistry)
                 .build();
 
-        MongoClient mongoClient = MongoClients.create(clientSettings);
-        return mongoClient.getDatabase("payment_db");
+        return MongoClients.create(clientSettings);
+    }
+
+    public MongoDatabase getDatabase() {
+        return getClient().getDatabase("payment_db");
     }
 
 }

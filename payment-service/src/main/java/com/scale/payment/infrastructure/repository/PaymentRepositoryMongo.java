@@ -1,8 +1,10 @@
 package com.scale.payment.infrastructure.repository;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import static com.mongodb.client.model.Updates.set;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.TransactionOptions;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.*;
 import com.scale.domain.Order;
 import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.Money;
@@ -18,13 +20,16 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.set;
 
 @Slf4j
 public class PaymentRepositoryMongo implements PaymentRepository {
+    private final @NonNull MongoClient client;
     private final @NonNull MongoCollection<Document> cards;
     private final @NonNull MongoCollection<Document> receipts;
 
-    public PaymentRepositoryMongo(@NonNull MongoDatabase db) {
+    public PaymentRepositoryMongo(@NonNull MongoClient client, @NonNull MongoDatabase db) {
+        this.client = client;
         this.cards = db.getCollection("cards");
         this.receipts = db.getCollection("receipts");
     }
@@ -52,10 +57,23 @@ public class PaymentRepositoryMongo implements PaymentRepository {
 
     @Override
     public void addReceipt(Card.Receipt receipt) {
-        // TODO: Check https://docs.mongodb.com/manual/core/transactions/
-        receipts.insertOne(serializePaymentReceipt(receipt));
-        cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
-                set("limit", receipt.getCard().getLimit().getValue().doubleValue()));
+
+        final ClientSession newSession = client.startSession();
+        TransactionOptions txnOptions = TransactionOptions.builder()
+                .readPreference(ReadPreference.primary())
+                .readConcern(ReadConcern.SNAPSHOT)
+                .writeConcern(WriteConcern.MAJORITY)
+                .build();
+
+        TransactionBody<String> changes = () -> {
+            receipts.insertOne(serializePaymentReceipt(receipt));
+            cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
+                    set("limit", receipt.getCard().getLimit().getValue().doubleValue()));
+            return "done";
+        };
+
+        newSession.withTransaction(changes, txnOptions);
+
         log.info("Receipt {} with reference to {} was stored in Mongo", receipt.getNumber(), receipt.getReference());
     }
 
