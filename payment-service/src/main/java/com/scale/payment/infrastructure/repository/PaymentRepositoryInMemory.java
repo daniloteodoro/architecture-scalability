@@ -12,11 +12,11 @@ import java.util.Optional;
 
 @Slf4j
 public class PaymentRepositoryInMemory implements PaymentRepository {
-    private final Map<String, Card> orders = new HashMap<>();
+    private final Map<String, Card> cards = new HashMap<>();
     private final Map<String, Map<Double, Card.Receipt>> receipts = new HashMap<>();
 
     @Override
-    public void add(Card.Receipt receipt) {
+    public void addReceipt(Card.Receipt receipt) {
         if (!receipts.containsKey(receipt.getReference()))
             receipts.put(receipt.getReference(), new HashMap<>());
         receipts.get(receipt.getReference()).putIfAbsent(receipt.getAmount().getValue().doubleValue(), receipt);
@@ -34,7 +34,17 @@ public class PaymentRepositoryInMemory implements PaymentRepository {
     }
 
     @Override
-    public Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt) {
-        return Optional.empty();
+    public void addCard(Card card) {
+        cards.put(card.getNumber(), card);
     }
+
+    @Override
+    public Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt) {
+        var possibleCard = cards.get(number);
+        if (possibleCard == null || !possibleCard.getDigit().equals(digit) || !possibleCard.getExpirationDate().equals(expireAt))
+            return Optional.empty();
+
+        return Optional.of(possibleCard);
+    }
+
 }

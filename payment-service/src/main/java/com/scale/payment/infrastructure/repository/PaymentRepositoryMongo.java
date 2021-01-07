@@ -29,14 +29,20 @@ public class PaymentRepositoryMongo implements PaymentRepository {
         this.receipts = db.getCollection("receipts");
     }
 
-    private Bson findByReferenceAndAmount(Order.OrderId id, Money amount) {
+    private Bson findReceiptInMongo(Order.OrderId id, Money amount) {
         return and(eq("reference", id.value()),
-                    eq("amount", amount.getValue().doubleValue()));
+                eq("amount", amount.getValue().doubleValue()));
+    }
+
+    private Bson findCardInMongo(String number, Short digit, Card.ExpirationDate expirationDate) {
+        return and(eq("_id", new ObjectId(number)),
+                eq("digit", digit),
+                eq("expiration_date", expirationDate.getValue()));
     }
 
     @Override
     public Optional<Card.Receipt> findReceipt(Order.OrderId id, Money amount) {
-        var paymentDoc = receipts.find(findByReferenceAndAmount(id, amount))
+        var paymentDoc = receipts.find(findReceiptInMongo(id, amount))
                 .first();
         if (paymentDoc == null)
             return Optional.empty();
@@ -45,7 +51,7 @@ public class PaymentRepositoryMongo implements PaymentRepository {
     }
 
     @Override
-    public void add(Card.Receipt receipt) {
+    public void addReceipt(Card.Receipt receipt) {
         // TODO: Check https://docs.mongodb.com/manual/core/transactions/
         receipts.insertOne(serializePaymentReceipt(receipt));
         cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
@@ -54,8 +60,21 @@ public class PaymentRepositoryMongo implements PaymentRepository {
     }
 
     @Override
+    public void addCard(Card card) {
+        cards.insertOne(serializeCard(card));
+        log.info("Card {} was stored in Mongo", card.getNumber());
+    }
+
+    private Document serializeCard(Card card) {
+        return new Document("_id", new ObjectId(card.getNumber()))
+                .append("digit", card.getDigit())
+                .append("expiration_date", card.getExpirationDate().getValue())
+                .append("limit", card.getLimit().getValue().doubleValue());
+    }
+
+    @Override
     public Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt) {
-        var cardDoc = cards.find(and(eq("_id", new ObjectId(number)), eq("digit", digit), eq("expiration_date", expireAt.getValue())))
+        var cardDoc = cards.find(findCardInMongo(number, digit, expireAt))
                 .first();
         if (cardDoc == null)
             return Optional.empty();

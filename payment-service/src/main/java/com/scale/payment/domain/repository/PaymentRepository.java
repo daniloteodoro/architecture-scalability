@@ -8,7 +8,8 @@ import com.scale.payment.domain.model.Money;
 import java.util.Optional;
 
 public interface PaymentRepository {
-    void add(Card.Receipt receipt);
+    void addReceipt(Card.Receipt receipt);
+    void addCard(Card card);
     Optional<Card.Receipt> findReceipt(Order.OrderId id, Money amount);
     Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt);
 }

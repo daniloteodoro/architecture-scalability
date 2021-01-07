@@ -9,6 +9,7 @@ import com.scale.payment.PaymentServiceGrpc;
 import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.Money;
+import com.scale.payment.domain.model.PaymentError;
 import com.scale.payment.domain.repository.PaymentRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -41,9 +42,27 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
             return;
         }
 
+        var requestedCard = paymentRepository.findCard(request.getCard().getNumber(),
+                (short)request.getCard().getDigit(),
+                new Card.ExpirationDate(request.getCard().getExpirationDate()));
+        if (requestedCard.isEmpty()) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription("Card was not found")
+                    .asRuntimeException());
+            return;
+        }
+
         // Pay order with id XXX, total 342.09 with card number NNNN
-        Card sampleCard = new Card("1234", (short)333, new Card.ExpirationDate("10/2030"), Money.of(3000.0));
-        var receipt = payOrder.using(sampleCard, Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        Card.Receipt receipt = null;
+        try {
+            receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        } catch (PaymentError e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(e.getMessage())
+                    .asRuntimeException());
+            return;
+        }
 
         log.info("Order {} was paid using gRPC", request.getOrderId());
 
@@ -61,20 +80,13 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
                 .build();
 
         var orderPayment = OrderPaymentDetailMessage.newBuilder();
-        if (receipt.getCard().equals(sampleCard))
-            orderPayment.setReceipt(paymentReceipt);
-        else
+        if (receipt instanceof Card.OrderAlreadyPayedReceipt)
             orderPayment.setOrderAlreadyPayed(paymentReceipt);
+        else
+            orderPayment.setReceipt(paymentReceipt);
 
         responseObserver.onNext(orderPayment.build());
         responseObserver.onCompleted();
-    }
-
-    private ZonedDateTime toUTCDateTime(Timestamp input) {
-        return Instant
-                .ofEpochSecond( input.getSeconds(), input.getNanos() )
-                .atOffset( ZoneOffset.UTC )
-                .toZonedDateTime();
     }
 
 }

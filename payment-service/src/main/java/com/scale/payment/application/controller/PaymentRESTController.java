@@ -38,19 +38,25 @@ public class PaymentRESTController {
 
         var requestedCard = paymentRepository.findCard(request.card.number, request.card.digit, new Card.ExpirationDate(request.card.expirationDate));
         if (requestedCard.isEmpty()) {
-            context.status(HttpStatus.BAD_REQUEST_400)
+            context.status(HttpStatus.NOT_FOUND_404)
                     .result("Card was not found");
             return;
         }
 
         // Pay order with id XXX, total 342.09 with card number NNNN
-//        Card sampleCard = new Card("1234", (short)333, new Card.ExpirationDate("10/2030"), Money.of(3000.0));
-        var receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        Card.Receipt receipt = null;
+        try {
+            receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            context.status(HttpStatus.PAYMENT_REQUIRED_402)
+                    .result(e.getMessage());
+            return;
+        }
 
         log.info("Order {} was paid using REST", request.getOrderId());
 
-        // TODO: Check in a consistent way
-        var status = (receipt.getCard().equals(requestedCard.get())) ? HttpStatus.CREATED_201 : HttpStatus.SEE_OTHER_303;
+        var status = (receipt instanceof Card.OrderAlreadyPayedReceipt) ? HttpStatus.OK_200 : HttpStatus.CREATED_201;
 
         context.header("location", "/receipts/" + receipt.getNumber())
                 .json(receipt)
@@ -64,7 +70,7 @@ public class PaymentRESTController {
 
     @Value
     private static class PaymentRequestDto {
-        @NonNull double amount;
+        @NonNull Double amount;
         @NonNull String orderId;
         @NonNull CardDetailsDto card;
     }

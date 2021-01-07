@@ -27,7 +27,7 @@ public class Money {
         return new Money(BigDecimal.valueOf(this.value.doubleValue() - amount.value.doubleValue()));
     }
 
-    public static class InvalidMoneyAmount extends RuntimeException {
+    public static class InvalidMoneyAmount extends PaymentError {
         public InvalidMoneyAmount(String msg) {
             super(msg);
         }
