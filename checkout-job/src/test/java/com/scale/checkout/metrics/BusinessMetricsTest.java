@@ -1,4 +1,4 @@
-package metrics;
+package com.scale.checkout.metrics;
 
 import com.scale.check_out.infrastructure.metrics.BusinessMetricsInMemory;
 import com.scale.check_out.domain.metrics.BusinessMetrics;

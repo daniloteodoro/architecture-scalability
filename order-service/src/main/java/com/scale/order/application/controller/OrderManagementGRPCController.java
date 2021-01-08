@@ -94,8 +94,20 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
                 .map(this::getShoppingCartItemFromDto)
                 .collect(Collectors.toList());
 
-        return ShoppingCart.forClient(ShoppingCart.ClientId.of(cart.getClientId()), cart.getSessionId(), toUTCDateTime(cart.getCartDateTime()),
-                cart.getNumberOfCustomers(), cart.getIsFirst(), cart.getIsLast(), items);
+        return ShoppingCart.builder()
+                .clientId(ShoppingCart.ClientId.of(cart.getClientId()))
+                .sessionId(cart.getSessionId())
+                .createdAt(toUTCDateTime(cart.getCartDateTime()))
+                .numberOfClientsOnSameSession(cart.getNumberOfCustomers())
+                .address(cart.getAddress())
+                .zipCode(cart.getZipCode())
+                .city(cart.getCity())
+                .state(cart.getState())
+                .country(cart.getCountry())
+                .isFirst(cart.getIsFirst())
+                .isLast(cart.getIsLast())
+                .items(items)
+                .build();
     }
 
     private ShoppingCart.ShoppingCartItem getShoppingCartItemFromDto(OrderItemDto orderItem) {
@@ -124,6 +136,7 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
         return OrderDto.newBuilder()
                 .setId(order.getId().getValue())
                 .setDate(orderDate)
+                .setFullAddress(order.getFullAddress())
                 .addAllItems(
                         order.getItems().stream()
                             .map(this::convertToOrderItemDto)

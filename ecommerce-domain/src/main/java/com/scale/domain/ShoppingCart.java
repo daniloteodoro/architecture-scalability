@@ -30,23 +30,6 @@ public class ShoppingCart {
     @NonNull Boolean isFirst;
     @NonNull Boolean isLast;
 
-    public static ShoppingCart forClient(ClientId clientId, String sessionId, ZonedDateTime createdAt, Long maxNumberOfClients,
-                                         Boolean isFirst, Boolean isLast, List<ShoppingCartItem> items) {
-        if (clientId == null)
-            throw new InvalidClient("Client is mandatory");
-        if (sessionId == null || sessionId.isBlank())
-            throw new InvalidSession("Session cannot be blank");
-        return ShoppingCart.builder()
-                .sessionId(sessionId)
-                .createdAt(createdAt)
-                .clientId(clientId)
-                .numberOfClientsOnSameSession(maxNumberOfClients)
-                .isFirst(isFirst)
-                .isLast(isLast)
-                .items(items)
-                .build();
-    }
-
     public Order convert() {
         if (getItems().isEmpty())
             throw new CannotConvertShoppingCart("Cannot convert an empty shopping cart to an order");
