@@ -1,9 +1,9 @@
 package com.scale.check_out.infrastructure.order;
 
 import com.google.protobuf.Timestamp;
-import com.scale.check_out.domain.model.ConfirmOrder;
-import com.scale.check_out.domain.model.ConvertShoppingCart;
-import com.scale.check_out.domain.model.UpdateOrder;
+import com.scale.check_out.application.services.payment.PaymentDto;
+import com.scale.check_out.domain.model.order.ConfirmOrder;
+import com.scale.check_out.domain.model.order.ConvertShoppingCart;
 import com.scale.domain.Order;
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Slf4j
-public class OrderServiceUsingGRPC implements ConvertShoppingCart, UpdateOrder, ConfirmOrder {
+public class OrderServiceUsingGRPC implements ConvertShoppingCart, ConfirmOrder {
     @NonNull OrderServiceGrpc.OrderServiceBlockingStub orderService;
 
     @Override
@@ -30,18 +30,11 @@ public class OrderServiceUsingGRPC implements ConvertShoppingCart, UpdateOrder, 
     }
 
     @Override
-    public void changeAddress(Order order) {
-        orderService.updateOrderAddress(AddressChange.newBuilder()
-            .setId(order.getId().value())
-            .setAddress("Address updated from gRPC service")
-            .build());
-    }
-
-    @Override
-    public void handle(Order order) {
-        orderService.confirm(OrderId.newBuilder()
-            .setId(order.getId().value())
-            .build());
+    public void withPaymentReceipt(Order order, PaymentDto.PaymentReceiptDto receipt) {
+        orderService.confirm(OrderIdAndReceipt.newBuilder()
+                .setOrderId(order.getId().value())
+                .setPaymentReceipt(receipt.getNumber())
+                .build());
     }
 
     private ShoppingCartDto toShoppingCartDto(ShoppingCart shoppingCart) {
@@ -67,6 +60,7 @@ public class OrderServiceUsingGRPC implements ConvertShoppingCart, UpdateOrder, 
         return OrderDto.newBuilder()
                 .setId(input.getId().value())
                 .setDate(toProtoDateTime(input.getCreatedAt()))
+                .setFullAddress(input.getFullAddress())
                 .addAllItems(input.getItems().stream()
                         .map(this::toItemDto)
                         .collect(Collectors.toList()))
@@ -102,6 +96,7 @@ public class OrderServiceUsingGRPC implements ConvertShoppingCart, UpdateOrder, 
         return Order.builder()
                 .id(Order.OrderId.of(input.getId()))
                 .createdAt(toUTCDateTime(input.getDate()))
+                .fullAddress(input.getFullAddress())
                 .items(input.getItemsList().stream()
                         .map(this::toOrderItem)
                         .collect(Collectors.toList()))

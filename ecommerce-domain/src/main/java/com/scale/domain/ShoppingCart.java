@@ -18,6 +18,7 @@ public class ShoppingCart {
     @NonNull String sessionId;
     @NonNull ZonedDateTime createdAt;
     @NonNull ClientId clientId;
+    // TODO: Add a class to hold addresses
     String address;
     String zipCode;
     String city;
@@ -29,30 +30,17 @@ public class ShoppingCart {
     @NonNull Boolean isFirst;
     @NonNull Boolean isLast;
 
-    public static ShoppingCart forClient(ClientId clientId, String sessionId, ZonedDateTime createdAt, Long maxNumberOfClients,
-                                         Boolean isFirst, Boolean isLast, List<ShoppingCartItem> items) {
-        if (clientId == null)
-            throw new InvalidClient("Client is mandatory");
-        if (sessionId == null || sessionId.isBlank())
-            throw new InvalidSession("Session cannot be blank");
-        return ShoppingCart.builder()
-                .sessionId(sessionId)
-                .createdAt(createdAt)
-                .clientId(clientId)
-                .numberOfClientsOnSameSession(maxNumberOfClients)
-                .isFirst(isFirst)
-                .isLast(isLast)
-                .items(items)
-                .build();
-    }
-
     public Order convert() {
         if (getItems().isEmpty())
-            throw new CannotConvertShoppingCart("Cannot convert empty shopping cart to an order");
+            throw new CannotConvertShoppingCart("Cannot convert an empty shopping cart to an order");
         var orderItems = getItems().stream()
                 .map(this::toOrderItem)
                 .collect(Collectors.toList());
-        return Order.with(ZonedDateTime.now(ZoneOffset.UTC), orderItems);
+        return Order.with(generateFullAddress(), orderItems);
+    }
+
+    private String generateFullAddress() {
+        return String.format("%s, %s, %s, %s, %s", address, zipCode, city, state, country);
     }
 
     private Order.OrderItem toOrderItem(ShoppingCartItem input) {
@@ -62,7 +50,6 @@ public class ShoppingCart {
                 .quantity(input.quantity)
                 .build();
     }
-
 
     @Builder
     @Value

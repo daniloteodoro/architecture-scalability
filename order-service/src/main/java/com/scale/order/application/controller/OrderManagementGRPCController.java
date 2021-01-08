@@ -64,17 +64,24 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
     }
 
     @Override
-    public void confirm(OrderId request, StreamObserver<Empty> responseObserver) {
-        if (request.getId().isBlank()) {
+    public void confirm(OrderIdAndReceipt request, StreamObserver<Empty> responseObserver) {
+        if (request.getOrderId().isBlank()) {
             responseObserver.onError(Status.FAILED_PRECONDITION
                     .withDescription("Order id is mandatory")
                     .asRuntimeException());
             return;
         }
 
-        confirmOrder.withId(Order.OrderId.of(request.getId()));
+        if (request.getPaymentReceipt().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Receipt number is mandatory")
+                    .asRuntimeException());
+            return;
+        }
 
-        log.info("Order {} was confirmed using gRPC", request.getId());
+        confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getOrderId()), request.getPaymentReceipt());
+
+        log.info("Order {} was confirmed using gRPC", request.getOrderId());
 
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
@@ -87,8 +94,20 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
                 .map(this::getShoppingCartItemFromDto)
                 .collect(Collectors.toList());
 
-        return ShoppingCart.forClient(ShoppingCart.ClientId.of(cart.getClientId()), cart.getSessionId(), toUTCDateTime(cart.getCartDateTime()),
-                cart.getNumberOfCustomers(), cart.getIsFirst(), cart.getIsLast(), items);
+        return ShoppingCart.builder()
+                .clientId(ShoppingCart.ClientId.of(cart.getClientId()))
+                .sessionId(cart.getSessionId())
+                .createdAt(toUTCDateTime(cart.getCartDateTime()))
+                .numberOfClientsOnSameSession(cart.getNumberOfCustomers())
+                .address(cart.getAddress())
+                .zipCode(cart.getZipCode())
+                .city(cart.getCity())
+                .state(cart.getState())
+                .country(cart.getCountry())
+                .isFirst(cart.getIsFirst())
+                .isLast(cart.getIsLast())
+                .items(items)
+                .build();
     }
 
     private ShoppingCart.ShoppingCartItem getShoppingCartItemFromDto(OrderItemDto orderItem) {
@@ -117,6 +136,7 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
         return OrderDto.newBuilder()
                 .setId(order.getId().getValue())
                 .setDate(orderDate)
+                .setFullAddress(order.getFullAddress())
                 .addAllItems(
                         order.getItems().stream()
                             .map(this::convertToOrderItemDto)

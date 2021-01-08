@@ -1,17 +1,11 @@
 package com.scale.order;
 
 import com.google.gson.Gson;
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
 import com.scale.order.application.controller.OrderManagementRESTController;
 import com.scale.order.application.usecases.ConfirmOrder;
 import com.scale.order.application.usecases.GenerateOrder;
 import com.scale.order.application.usecases.UpdateOrder;
-import com.scale.order.infrastructure.config.MongoConfig;
-import com.scale.order.infrastructure.config.ZonedDateTimeCodec;
+import com.scale.order.infrastructure.configuration.MongoConfig;
 import com.scale.order.infrastructure.configuration.SerializerConfig;
 import com.scale.order.infrastructure.repository.OrderRepositoryMongo;
 import io.javalin.Javalin;
@@ -19,10 +13,6 @@ import io.javalin.plugin.json.JavalinJson;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
-
-import static org.bson.codecs.configuration.CodecRegistries.*;
 
 @RequiredArgsConstructor
 @Slf4j

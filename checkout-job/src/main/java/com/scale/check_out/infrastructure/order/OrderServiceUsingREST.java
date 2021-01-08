@@ -1,8 +1,8 @@
 package com.scale.check_out.infrastructure.order;
 
-import com.scale.check_out.domain.model.ConfirmOrder;
-import com.scale.check_out.domain.model.ConvertShoppingCart;
-import com.scale.check_out.domain.model.UpdateOrder;
+import com.scale.check_out.application.services.payment.PaymentDto;
+import com.scale.check_out.domain.model.order.ConfirmOrder;
+import com.scale.check_out.domain.model.order.ConvertShoppingCart;
 import com.scale.domain.*;
 import kong.unirest.HttpStatus;
 import kong.unirest.Unirest;
@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-public class OrderServiceUsingREST implements ConvertShoppingCart, UpdateOrder, ConfirmOrder {
+public class OrderServiceUsingREST implements ConvertShoppingCart, ConfirmOrder {
     @NonNull String serviceHost;
     @NonNull Integer servicePort;
 
@@ -29,18 +29,10 @@ public class OrderServiceUsingREST implements ConvertShoppingCart, UpdateOrder, 
     }
 
     @Override
-    public void changeAddress(Order order) {
-        var response = Unirest.put(String.format("http://%s:%d/orders/%s/address", serviceHost, servicePort, order.getId().value()))
-                .body("Address updated from REST service")
-                .asString();
+    public void withPaymentReceipt(Order order, PaymentDto.PaymentReceiptDto receipt) {
 
-        if (response.getStatus() != HttpStatus.NO_CONTENT)
-            throw new CannotUpdateOrder(String.format("Error %d updating order's address", response.getStatus()));
-    }
-
-    @Override
-    public void handle(Order order) {
         var response = Unirest.put(String.format("http://%s:%d/orders/%s/confirm", serviceHost, servicePort, order.getId().value()))
+                .body(receipt.getNumber())
                 .asString();
 
         if (response.getStatus() != HttpStatus.NO_CONTENT)

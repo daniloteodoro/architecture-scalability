@@ -64,7 +64,14 @@ public class OrderManagementRESTController {
             return;
         }
 
-        confirmOrder.withId(Order.OrderId.of(orderId));
+        String receiptNumber = context.body();
+        if (receiptNumber.isBlank()) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Receipt number is mandatory");
+            return;
+        }
+
+        confirmOrder.withPaymentReceipt(Order.OrderId.of(orderId), receiptNumber);
 
         log.info("Order {} was confirmed using REST", orderId);
         context.status(HttpStatus.NO_CONTENT_204);

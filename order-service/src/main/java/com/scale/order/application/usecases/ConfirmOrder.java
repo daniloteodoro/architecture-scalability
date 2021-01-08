@@ -11,10 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfirmOrder {
     @NonNull OrderRepository orderRepository;
 
-    public void withId(Order.OrderId id) {
+    public void withPaymentReceipt(Order.OrderId id, String receipt) {
         var order = orderRepository.load(id)
                 .orElseThrow(() -> new OrderNotFound(id));
-        order.confirm();
+        order.confirm(receipt);
         orderRepository.update(order);
     }
 

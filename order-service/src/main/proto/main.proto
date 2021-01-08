@@ -13,7 +13,7 @@ service OrderService {
 
     rpc createOrder (ShoppingCartDto) returns (OrderDto) {}
     rpc updateOrderAddress (AddressChange) returns (google.protobuf.Empty) {}
-    rpc confirm (OrderId) returns (google.protobuf.Empty) {}
+    rpc confirm (OrderIdAndReceipt) returns (google.protobuf.Empty) {}
 
 }
 
@@ -35,7 +35,8 @@ message ShoppingCartDto {
 message OrderDto {
     string id = 1;
     google.protobuf.Timestamp date = 2;
-    repeated OrderItemDto items = 3;
+    string fullAddress = 3;
+    repeated OrderItemDto items = 4;
 }
 
 message OrderItemDto {
@@ -56,6 +57,7 @@ message AddressChange {
     string address = 2;
 }
 
-message OrderId {
-    string id = 1;
+message OrderIdAndReceipt {
+    string orderId = 1;
+    string paymentReceipt = 2;
 }
