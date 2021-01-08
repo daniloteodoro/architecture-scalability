@@ -16,7 +16,7 @@ message PaymentRequestMessage {
     // Only in Euros
     double amount = 1;
     string orderId = 2;
-    CardDetailsMessage card = 3;
+    string clientId = 3;
 }
 
 message CardDetailsMessage {
@@ -35,7 +35,7 @@ message OrderPaymentDetailMessage {
 }
 
 message PaymentReceiptMessage {
-    string id = 1;
+    string number = 1;
     google.protobuf.Timestamp time = 2;
     string reference = 3;
     double amount = 4;

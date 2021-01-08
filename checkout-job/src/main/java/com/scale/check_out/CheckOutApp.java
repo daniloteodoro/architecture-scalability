@@ -8,6 +8,7 @@ import com.scale.check_out.infrastructure.metrics.BusinessMetricsInMemory;
 import com.scale.check_out.infrastructure.order.OrderServiceChannelHandler;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingGRPC;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingREST;
+import com.scale.check_out.infrastructure.payment.PaymentServiceChannelHandler;
 import com.scale.check_out.infrastructure.payment.PaymentServiceUsingREST;
 import com.scale.check_out.infrastructure.payment.PaymentServiceUsingGRPC;
 import com.scale.check_out.infrastructure.queue.RabbitMQChannelHandler;
@@ -45,8 +46,9 @@ public class CheckOutApp {
         var metricsController = new MetricsController(inMemoryMetricsWatcher);
         var orderServiceChannelHandler = new OrderServiceChannelHandler();
         var orderServiceGRPC = new OrderServiceUsingGRPC(orderServiceChannelHandler.createBlockingStub());
-        var paymentServiceREST = new PaymentServiceUsingGRPC();
-        var placeOrder = new PlaceOrder(orderServiceGRPC, paymentServiceREST, orderServiceGRPC, inMemoryMetricsWatcher);
+        var paymentServiceChannelHandler = new PaymentServiceChannelHandler();
+        var paymentServiceGRPC = new PaymentServiceUsingGRPC(paymentServiceChannelHandler.createBlockingStub());
+        var placeOrder = new PlaceOrder(orderServiceGRPC, paymentServiceGRPC, orderServiceGRPC, inMemoryMetricsWatcher);
         var queueManager = new RabbitMQChannelHandler();
         var shoppingCartListener = new ShoppingCartListener(queueManager.createChannel(), inMemoryMetricsWatcher, placeOrder);
 

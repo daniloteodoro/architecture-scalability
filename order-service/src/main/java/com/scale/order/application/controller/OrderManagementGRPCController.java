@@ -64,18 +64,24 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
     }
 
     @Override
-    public void confirm(OrderId request, StreamObserver<Empty> responseObserver) {
-        if (request.getId().isBlank()) {
+    public void confirm(OrderIdAndReceipt request, StreamObserver<Empty> responseObserver) {
+        if (request.getOrderId().isBlank()) {
             responseObserver.onError(Status.FAILED_PRECONDITION
                     .withDescription("Order id is mandatory")
                     .asRuntimeException());
             return;
         }
 
-        // TODO: Get receipt
-        confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getId()), null);
+        if (request.getPaymentReceipt().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Receipt number is mandatory")
+                    .asRuntimeException());
+            return;
+        }
 
-        log.info("Order {} was confirmed using gRPC", request.getId());
+        confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getOrderId()), request.getPaymentReceipt());
+
+        log.info("Order {} was confirmed using gRPC", request.getOrderId());
 
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();

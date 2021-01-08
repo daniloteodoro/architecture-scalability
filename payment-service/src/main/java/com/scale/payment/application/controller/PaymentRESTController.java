@@ -6,6 +6,7 @@ import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
+import com.scale.payment.domain.model.PaymentError;
 import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
 import io.javalin.http.Context;
@@ -55,10 +56,15 @@ public class PaymentRESTController {
         Card.Receipt receipt;
         try {
             receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
-        } catch (Exception e) {
+        } catch (PaymentError e) {
             e.printStackTrace();
             context.status(HttpStatus.PAYMENT_REQUIRED_402)
                     .result(e.getMessage());
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            context.status(HttpStatus.INTERNAL_SERVER_ERROR_500)
+                    .result("Failure processing payment");
             return;
         }
 

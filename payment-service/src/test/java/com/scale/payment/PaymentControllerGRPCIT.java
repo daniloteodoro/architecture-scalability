@@ -1,9 +1,8 @@
 package com.scale.payment;
 
-import com.google.protobuf.Timestamp;
 import com.scale.payment.application.controller.PaymentGRPCController;
 import com.scale.payment.application.usecases.PayOrder;
-import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryInMemory;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -25,11 +23,13 @@ public class PaymentControllerGRPCIT {
 
     @BeforeAll
     static void setup() throws IOException, InterruptedException {
+        paymentRepository.insertDefaultClientsWithCards();
+
         var payOrder = new PayOrder(paymentRepository);
         var gRPCController = new PaymentGRPCController(payOrder, paymentRepository);
 
-        PaymentAppUsingGRPC app = new PaymentAppUsingGRPC(gRPCController);
-        app.startOnPort(DEFAULT_PORT, false);
+        new PaymentAppUsingGRPC(gRPCController)
+                .startOnPort(DEFAULT_PORT, false);
     }
 
     public PaymentServiceGrpc.PaymentServiceBlockingStub createBlockingStub() {
@@ -46,46 +46,41 @@ public class PaymentControllerGRPCIT {
 
     @Test
     public void givenAValidCard_WhenPayingANewOrder_ThenReceiptIsGeneratedCorrectly() {
-        paymentRepository.addCard(new Card("123456", (short)555, new Card.ExpirationDate("05/2025"), Money.of(200.0)));
         var stub = createBlockingStub();
-        var card = CardDetailsMessage.newBuilder()
-                .setNumber("123456")
-                .setDigit(555)
-                .setExpirationDate("05/2025")
-                .build();
         var paymentRequest = PaymentRequestMessage.newBuilder()
-                .setCard(card)
+                .setClientId("5ff867a5e77e950006a814ad")
                 .setAmount(200.0)
                 .setOrderId("RANDOM1")
                 .build();
+        var storedCard = paymentRepository.findCardByClient(new ClientId("5ff867a5e77e950006a814ad"))
+                .orElseThrow(() -> new AssertionError("Card from client 5ff867a5e77e950006a814ad should exist"));
+        var previousLimit = storedCard.getLimit().getValue().doubleValue();
+
         var orderReceipt = stub.pay(paymentRequest);
         assertThat(orderReceipt, is(notNullValue()));
         assertThat(orderReceipt.getReceipt(), is(notNullValue()));
 
         var receipt = orderReceipt.getReceipt();
-        assertThat(receipt.getId().length(), is(greaterThan(5)));
+        assertThat(receipt.getNumber().length(), is(greaterThan(5)));
         assertThat(receipt.getReference(), is(equalTo("RANDOM1")));
         assertThat(receipt.getAmount(), is(closeTo(200.0, 0.00001)));
 
-        var storedCard = paymentRepository.findCard("123456", (short)555, new Card.ExpirationDate("05/2025"))
-                .orElseThrow(() -> new AssertionError("Card 123456 should exist"));
-        assertThat(storedCard.getLimit(), is(equalTo(Money.of(0.0))));
+        // This is the card associated with client id 5ff867a5e77e950006a814ad, inserted on the startup by method PaymentRepository.insertDefaultClientsWithCards()
+        storedCard = paymentRepository.findCardByClient(new ClientId("5ff867a5e77e950006a814ad")).get();
+        assertThat(storedCard.getLimit(), is(equalTo(Money.of(previousLimit - 200.0))));
     }
 
     @Test
     public void givenAValidCard_WhenPayingAnOrderTwice_ThenSecondPaymentIsNotPerformed() {
-        paymentRepository.addCard(new Card("333444", (short)555, new Card.ExpirationDate("05/2025"), Money.of(400.0)));
         var stub = createBlockingStub();
-        var card = CardDetailsMessage.newBuilder()
-                .setNumber("333444")
-                .setDigit(555)
-                .setExpirationDate("05/2025")
-                .build();
         var paymentRequest = PaymentRequestMessage.newBuilder()
-                .setCard(card)
+                .setClientId("5ff878f5e77e950006a814b3")
                 .setAmount(200.0)
                 .setOrderId("RANDOM2")
                 .build();
+        var storedCard = paymentRepository.findCardByClient(new ClientId("5ff878f5e77e950006a814b3"))
+                .orElseThrow(() -> new AssertionError("Card 5ff873c1e77e950006a814af should exist"));
+        var previousLimit = storedCard.getLimit().getValue().doubleValue();
 
         // Pay this order 1st time
         stub.pay(paymentRequest);
@@ -96,27 +91,22 @@ public class PaymentControllerGRPCIT {
         assertThat(orderReceipt.getReceiptOrWarningCase(), is(OrderPaymentDetailMessage.ReceiptOrWarningCase.ORDERALREADYPAID));
 
         var receipt = orderReceipt.getOrderAlreadyPaid();
-        assertThat(receipt.getId().length(), is(greaterThan(5)));
+        assertThat(receipt.getNumber().length(), is(greaterThan(5)));
         assertThat(receipt.getReference(), is(equalTo("RANDOM2")));
         assertThat(receipt.getAmount(), is(closeTo(200.0, 0.00001)));
 
-        var storedCard = paymentRepository.findCard("333444", (short)555, new Card.ExpirationDate("05/2025"))
-                .orElseThrow(() -> new AssertionError("Card 333444 should exist"));
-        assertThat(storedCard.getLimit(), is(equalTo(Money.of(200.0))));
+        storedCard = paymentRepository.findCardByClient(new ClientId("5ff878f5e77e950006a814b3")).get();
+        assertThat(storedCard.getLimit(), is(equalTo(Money.of(previousLimit - 200.0))));
     }
 
     @Test
     public void givenAValidCardWithLowBalance_WhenPayingANewOrder_ThenPaymentIsNotPerformed() {
-        paymentRepository.addCard(new Card("777777", (short)555, new Card.ExpirationDate("05/2025"), Money.of(199.99)));
         var stub = createBlockingStub();
-        var card = CardDetailsMessage.newBuilder()
-                .setNumber("777777")
-                .setDigit(555)
-                .setExpirationDate("05/2025")
-                .build();
+        var storedCard = paymentRepository.findCardByClient(new ClientId("5ff87909e77e950006a814b5"))
+                .orElseThrow(() -> new AssertionError("Card 5ff87909e77e950006a814b5 should exist"));
         var paymentRequest = PaymentRequestMessage.newBuilder()
-                .setCard(card)
-                .setAmount(200.0)
+                .setClientId("5ff87909e77e950006a814b5")
+                .setAmount(storedCard.getLimit().getValue().doubleValue() + 1.0)
                 .setOrderId("RANDOM3")
                 .build();
         Assertions.assertThrows(StatusRuntimeException.class, () -> stub.pay(paymentRequest));

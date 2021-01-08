@@ -8,6 +8,7 @@ import com.scale.payment.PaymentRequestMessage;
 import com.scale.payment.PaymentServiceGrpc;
 import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.model.PaymentError;
 import com.scale.payment.domain.repository.PaymentRepository;
@@ -40,25 +41,35 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
                     .asRuntimeException());
             return;
         }
-
-        var requestedCard = paymentRepository.findCard(request.getCard().getNumber(),
-                (short)request.getCard().getDigit(),
-                new Card.ExpirationDate(request.getCard().getExpirationDate()));
-        if (requestedCard.isEmpty()) {
-            responseObserver.onError(Status.NOT_FOUND
-                    .withDescription("Card was not found")
+        if (request.getClientId().isBlank()) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription("Client id is mandatory")
                     .asRuntimeException());
             return;
         }
 
-        // Pay order with id XXX, total 342.09 with card number NNNN
-        Card.Receipt receipt = null;
+        var requestedCard = paymentRepository.findCardByClient(new ClientId(request.getClientId()));
+        if (requestedCard.isEmpty()) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(String.format("Client %s was not found or has no associated card", request.getClientId()))
+                    .asRuntimeException());
+            return;
+        }
+
+        // Pay order with id 123, total 342.09 with card number 9999 from client X
+        Card.Receipt receipt;
         try {
             receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
         } catch (PaymentError e) {
             e.printStackTrace();
             responseObserver.onError(Status.INTERNAL
                     .withDescription(e.getMessage())
+                    .asRuntimeException());
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Failure processing payment")
                     .asRuntimeException());
             return;
         }
@@ -72,7 +83,7 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
                 .build();
 
         var paymentReceipt = PaymentReceiptMessage.newBuilder()
-                .setId(receipt.getNumber())
+                .setNumber(receipt.getNumber())
                 .setReference(receipt.getReference())
                 .setTime(receiptTime)
                 .setAmount(receipt.getAmount().getValue().doubleValue())

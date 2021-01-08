@@ -31,13 +31,10 @@ public class OrderServiceUsingGRPC implements ConvertShoppingCart, ConfirmOrder 
 
     @Override
     public void withPaymentReceipt(Order order, PaymentDto.PaymentReceiptDto receipt) {
-
-        // TODO: Transmit the receipt's number to the order service to confirm
-
-
-        orderService.confirm(OrderId.newBuilder()
-            .setId(order.getId().value())
-            .build());
+        orderService.confirm(OrderIdAndReceipt.newBuilder()
+                .setOrderId(order.getId().value())
+                .setPaymentReceipt(receipt.getNumber())
+                .build());
     }
 
     private ShoppingCartDto toShoppingCartDto(ShoppingCart shoppingCart) {
