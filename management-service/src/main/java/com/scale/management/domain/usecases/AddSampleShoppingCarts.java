@@ -13,13 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @AllArgsConstructor
 public class AddSampleShoppingCarts {
     @NonNull ShoppingCartPublisher shoppingCartPublisher;
+
+    private static final List<ShoppingCart.ClientId> availableClients = new ArrayList<>();
+    private final Random randomizer = new Random();
 
     public String handle(AddShoppingCartCommand addShoppingCartCommand) {
         log.info("Started sending messages to the queue - " + addShoppingCartCommand.number);
@@ -69,7 +71,7 @@ public class AddSampleShoppingCarts {
             return ShoppingCart.builder()
                     .sessionId(sessionId)
                     .createdAt(ZonedDateTime.now(ZoneOffset.UTC))
-                    .clientId(ShoppingCart.ClientId.of("5"))
+                    .clientId(availableClients.get(randomizer.nextInt(availableClients.size())))
                     .address("33 street, 5")
                     .zipCode("1234")
                     .city("Rotterdam")
@@ -103,6 +105,12 @@ public class AddSampleShoppingCarts {
         public boolean hasSession() {
             return !this.session.isBlank();
         }
+    }
+
+    static {
+        availableClients.add(ShoppingCart.ClientId.of("5ff867a5e77e950006a814ad"));
+        availableClients.add(ShoppingCart.ClientId.of("5ff878f5e77e950006a814b3"));
+        availableClients.add(ShoppingCart.ClientId.of("5ff87909e77e950006a814b5"));
     }
 
 }

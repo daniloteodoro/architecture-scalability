@@ -41,6 +41,7 @@ public class OrderRepositoryMongo implements OrderRepository {
                 .append("created_at", order.getCreatedAt().toString())
                 .append("full_address", order.getFullAddress())
                 .append("confirmed_at", order.getConfirmedAt() != null ? order.getConfirmedAt().toString() : null)
+                .append("payment_receipt", order.getReceipt())
                 .append("items", order.getItems().stream()
                         .map(this::serializeItem)
                         .collect(Collectors.toList()));
@@ -68,6 +69,7 @@ public class OrderRepositoryMongo implements OrderRepository {
                 .createdAt(ZonedDateTime.parse(doc.getString("created_at")))
                 .fullAddress(doc.getString("full_address"))
                 .confirmedAt(doc.get("confirmed_at") != null ? ZonedDateTime.parse(doc.getString("confirmed_at")) : null)
+                .receipt(doc.getString("payment_receipt"))
                 .items(items.stream()
                         .map(this::deserializeItem)
                         .collect(Collectors.toList()))

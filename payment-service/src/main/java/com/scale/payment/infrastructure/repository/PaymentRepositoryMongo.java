@@ -5,8 +5,10 @@ import com.mongodb.ReadPreference;
 import com.mongodb.TransactionOptions;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.*;
+import com.mongodb.client.model.UpdateOptions;
 import com.scale.domain.Order;
 import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import lombok.NonNull;
@@ -20,18 +22,25 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
 @Slf4j
 public class PaymentRepositoryMongo implements PaymentRepository {
-    private final @NonNull MongoClient client;
+    private final UpdateOptions optionsWithUpsert = new UpdateOptions().upsert(true);
+
+    private final @NonNull MongoDatabase db;
+    private final @NonNull MongoClient mongoClient;
+    private final @NonNull MongoCollection<Document> clients;
     private final @NonNull MongoCollection<Document> cards;
     private final @NonNull MongoCollection<Document> receipts;
 
-    public PaymentRepositoryMongo(@NonNull MongoClient client, @NonNull MongoDatabase db) {
-        this.client = client;
+    public PaymentRepositoryMongo(@NonNull MongoClient mongoClient, @NonNull MongoDatabase db) {
+        this.mongoClient = mongoClient;
+        this.db = db;
         this.cards = db.getCollection("cards");
         this.receipts = db.getCollection("receipts");
+        this.clients = db.getCollection("clients");
     }
 
     private Bson findReceiptInMongo(Order.OrderId id, Money amount) {
@@ -58,7 +67,7 @@ public class PaymentRepositoryMongo implements PaymentRepository {
     @Override
     public void addReceipt(Card.Receipt receipt) {
 
-        final ClientSession newSession = client.startSession();
+        final ClientSession newSession = mongoClient.startSession();
         TransactionOptions txnOptions = TransactionOptions.builder()
                 .readPreference(ReadPreference.primary())
                 .readConcern(ReadConcern.SNAPSHOT)
@@ -83,13 +92,6 @@ public class PaymentRepositoryMongo implements PaymentRepository {
         log.info("Card {} was stored in Mongo", card.getNumber());
     }
 
-    private Document serializeCard(Card card) {
-        return new Document("_id", new ObjectId(card.getNumber()))
-                .append("digit", card.getDigit())
-                .append("expiration_date", card.getExpirationDate().getValue())
-                .append("limit", card.getLimit().getValue().doubleValue());
-    }
-
     @Override
     public Optional<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt) {
         var cardDoc = cards.find(findCardInMongo(number, digit, expireAt))
@@ -98,6 +100,55 @@ public class PaymentRepositoryMongo implements PaymentRepository {
             return Optional.empty();
 
         return Optional.of(deserializeCard(cardDoc));
+    }
+
+    @Override
+    public Optional<Card> findCardByClient(ClientId clientId) {
+        var clientDoc = clients.find(eq("_id", new ObjectId(clientId.getValue())))
+                .first();
+        if (clientDoc == null || clientDoc.get("card_id") == null)
+            return Optional.empty();
+
+        var cardDoc = cards.find(eq("_id", new ObjectId(clientDoc.get("card_id").toString())))
+                .first();
+        if (cardDoc == null)
+            return Optional.empty();
+
+        return Optional.of(deserializeCard(cardDoc));
+    }
+
+    @Override
+    public void insertDefaultClientsWithCards() {
+        upsertCard("5ff67f73deff4f00079b7f84", (short)333, "10/2025", 1_000_000_000.0);
+        upsertCard("5ff873c1e77e950006a814af", (short)444, "01/2026", 1_500_000_000.0);
+        upsertCard("5ff873cae77e950006a814b1", (short)555, "08/2027", 1_800_000_000.0);
+
+        upsertClient("5ff867a5e77e950006a814ad", "5ff67f73deff4f00079b7f84");
+        upsertClient("5ff878f5e77e950006a814b3", "5ff873c1e77e950006a814af");
+        upsertClient("5ff87909e77e950006a814b5", "5ff873cae77e950006a814b1");
+    }
+
+    private void upsertCard(String number, Short digit, String expirationDate, Double limit) {
+        cards.updateOne(eq("_id", new ObjectId(number)),
+                combine(set("_id", new ObjectId(number)),
+                        set("digit", digit),
+                        set("expiration_date", expirationDate),
+                        set("limit", limit)),
+                optionsWithUpsert);
+    }
+
+    private void upsertClient(String clientId, String cardId) {
+        clients.updateOne(eq("_id", new ObjectId(clientId)),
+                combine(set("_id", new ObjectId(clientId)),
+                        set("card_id", new ObjectId(cardId))),
+                optionsWithUpsert);
+    }
+
+    private Document serializeCard(Card card) {
+        return new Document("_id", new ObjectId(card.getNumber()))
+                .append("digit", card.getDigit())
+                .append("expiration_date", card.getExpirationDate().getValue())
+                .append("limit", card.getLimit().getValue().doubleValue());
     }
 
     private Document serializePaymentReceipt(Card.Receipt receipt) {

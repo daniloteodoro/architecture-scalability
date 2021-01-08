@@ -25,7 +25,7 @@ public class PayOrder {
     public Card.Receipt using(Card card, Order.OrderId id, Money amount) {
         var possiblePayment = paymentRepository.findReceipt(id, amount);
         if (possiblePayment.isPresent()) {
-            return new Card.OrderAlreadyPayedReceipt(possiblePayment.get());
+            return new Card.OrderAlreadyPaidReceipt(possiblePayment.get());
         }
 
         var receipt = card.pay(amount, id.value());

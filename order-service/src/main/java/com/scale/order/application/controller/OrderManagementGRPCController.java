@@ -72,7 +72,8 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
             return;
         }
 
-        confirmOrder.withId(Order.OrderId.of(request.getId()));
+        // TODO: Get receipt
+        confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getId()), null);
 
         log.info("Order {} was confirmed using gRPC", request.getId());
 

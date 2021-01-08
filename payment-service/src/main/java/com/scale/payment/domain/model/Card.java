@@ -31,8 +31,8 @@ public class Card {
     }
 
     /**
-     * Used when there is a need to recreate the receipt e.g. creating it from database.
-     * @param amount    The amount payed
+     * Used when there is a need to recreate the receipt e.g. getting it from database.
+     * @param amount    The amount paid
      * @param reference Reference of the payment
      * @return          A receipt associated with this card.
      */
@@ -96,13 +96,13 @@ public class Card {
 
     }
 
-    public static class OrderAlreadyPayedReceipt extends Receipt {
+    public static class OrderAlreadyPaidReceipt extends Receipt {
 
-        private OrderAlreadyPayedReceipt(@NonNull Card card, @NonNull String number, @NonNull ZonedDateTime time, @NonNull String reference, @NonNull Money amount) {
+        private OrderAlreadyPaidReceipt(@NonNull Card card, @NonNull String number, @NonNull ZonedDateTime time, @NonNull String reference, @NonNull Money amount) {
             super(card, number, time, reference, amount);
         }
 
-        public OrderAlreadyPayedReceipt(Receipt receipt) {
+        public OrderAlreadyPaidReceipt(Receipt receipt) {
             this(receipt.card, receipt.number, receipt.time, receipt.reference, receipt.amount);
         }
 

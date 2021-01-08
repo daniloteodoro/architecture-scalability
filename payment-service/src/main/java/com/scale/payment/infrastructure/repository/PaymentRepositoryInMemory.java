@@ -1,7 +1,9 @@
 package com.scale.payment.infrastructure.repository;
 
 import com.scale.domain.Order;
+import com.scale.domain.ShoppingCart;
 import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +14,9 @@ import java.util.Optional;
 
 @Slf4j
 public class PaymentRepositoryInMemory implements PaymentRepository {
-    private final Map<String, Card> cards = new HashMap<>();
-    private final Map<String, Map<Double, Card.Receipt>> receipts = new HashMap<>();
+    private final Map<ClientId, Card> clientSelectedCard = new HashMap<>();
+    private final Map<String/*Card number*/, Card> cards = new HashMap<>();
+    private final Map<String/*OrderId*/, Map<Double/*Amount*/, Card.Receipt>> receipts = new HashMap<>();
 
     @Override
     public void addReceipt(Card.Receipt receipt) {
@@ -47,4 +50,20 @@ public class PaymentRepositoryInMemory implements PaymentRepository {
         return Optional.of(possibleCard);
     }
 
+    @Override
+    public Optional<Card> findCardByClient(ClientId clientId) {
+        return Optional.ofNullable(clientSelectedCard.get(clientId));
+    }
+
+    @Override
+    public void insertDefaultClientsWithCards() {
+        clientSelectedCard.put(new ClientId("5ff867a5e77e950006a814ad"),
+                new Card("5ff67f73deff4f00079b7f84", (short)333, new Card.ExpirationDate("10/2025"), Money.of(1_000_000_000.0)));
+
+        clientSelectedCard.put(new ClientId("5ff878f5e77e950006a814b3"),
+                new Card("5ff873c1e77e950006a814af", (short)444, new Card.ExpirationDate("01/2026"), Money.of(1_500_000_000.0)));
+
+        clientSelectedCard.put(new ClientId("5ff87909e77e950006a814b5"),
+                new Card("5ff873cae77e950006a814b1", (short)555, new Card.ExpirationDate("08/2027"), Money.of(1_800_000_000.0)));
+    }
 }

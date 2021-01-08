@@ -24,6 +24,8 @@ public class PaymentAppUsingREST {
         var dbConfig = new MongoConfig();
 
         var paymentRepository = new PaymentRepositoryMongo(dbConfig.getClient(), dbConfig.getDatabase());
+        paymentRepository.insertDefaultClientsWithCards();
+
         var payOrder = new PayOrder(paymentRepository);
         var RESTController = new PaymentRESTController(payOrder, paymentRepository);
 

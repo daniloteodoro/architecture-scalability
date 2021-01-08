@@ -1,9 +1,9 @@
-package com.scale.check_out.application;
+package com.scale.check_out.application.controller;
 
 import com.google.gson.Gson;
 import com.rabbitmq.client.Channel;
 import com.scale.check_out.domain.model.CheckOutError;
-import com.scale.check_out.domain.usecases.PlaceOrder;
+import com.scale.check_out.application.usecases.PlaceOrder;
 import com.scale.check_out.domain.metrics.BusinessMetrics;
 import com.scale.check_out.infrastructure.configuration.SerializerConfig;
 import com.scale.domain.ShoppingCart;

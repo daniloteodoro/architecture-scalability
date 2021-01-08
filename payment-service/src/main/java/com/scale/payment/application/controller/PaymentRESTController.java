@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.scale.domain.Order;
 import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
+
+import java.time.ZonedDateTime;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -35,16 +38,21 @@ public class PaymentRESTController {
                     .result("Amount must be greater than zero");
             return;
         }
-
-        var requestedCard = paymentRepository.findCard(request.card.number, request.card.digit, new Card.ExpirationDate(request.card.expirationDate));
-        if (requestedCard.isEmpty()) {
-            context.status(HttpStatus.NOT_FOUND_404)
-                    .result("Card was not found");
+        if (request.getClientId() == null) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Client id is mandatory");
             return;
         }
 
-        // Pay order with id XXX, total 342.09 with card number NNNN
-        Card.Receipt receipt = null;
+        var requestedCard = paymentRepository.findCardByClient(request.clientId);
+        if (requestedCard.isEmpty()) {
+            context.status(HttpStatus.NOT_FOUND_404)
+                    .result(String.format("Client %s was not found or has no associated card", request.clientId.getValue()));
+            return;
+        }
+
+        // Pay order with id 123, total 342.09 with card number 9999 from client X
+        Card.Receipt receipt;
         try {
             receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
         } catch (Exception e) {
@@ -56,10 +64,10 @@ public class PaymentRESTController {
 
         log.info("Order {} was paid using REST", request.getOrderId());
 
-        var status = (receipt instanceof Card.OrderAlreadyPayedReceipt) ? HttpStatus.OK_200 : HttpStatus.CREATED_201;
+        var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK_200 : HttpStatus.CREATED_201;
 
         context.header("location", "/receipts/" + receipt.getNumber())
-                .json(receipt)
+                .json(PaymentReceiptDto.from(receipt))
                 .status(status);
     }
 
@@ -72,7 +80,7 @@ public class PaymentRESTController {
     private static class PaymentRequestDto {
         @NonNull Double amount;
         @NonNull String orderId;
-        @NonNull CardDetailsDto card;
+        @NonNull ClientId clientId;
     }
 
     @Value
@@ -81,6 +89,18 @@ public class PaymentRESTController {
         @NonNull Short digit;
         // MM/YYYY
         @NonNull String expirationDate;
+    }
+
+    @Value
+    public static class PaymentReceiptDto {
+        @NonNull String number;
+        @NonNull ZonedDateTime time;
+        @NonNull String reference;
+        @NonNull Double amount;
+
+        public static PaymentReceiptDto from(Card.Receipt receipt) {
+            return new PaymentReceiptDto(receipt.getNumber(), receipt.getTime(), receipt.getReference(), receipt.getAmount().getValue().doubleValue());
+        }
     }
 
 }

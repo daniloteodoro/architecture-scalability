@@ -93,9 +93,9 @@ public class PaymentControllerGRPCIT {
         var orderReceipt = stub.pay(paymentRequest);
 
         assertThat(orderReceipt, is(notNullValue()));
-        assertThat(orderReceipt.getReceiptOrWarningCase(), is(OrderPaymentDetailMessage.ReceiptOrWarningCase.ORDERALREADYPAYED));
+        assertThat(orderReceipt.getReceiptOrWarningCase(), is(OrderPaymentDetailMessage.ReceiptOrWarningCase.ORDERALREADYPAID));
 
-        var receipt = orderReceipt.getOrderAlreadyPayed();
+        var receipt = orderReceipt.getOrderAlreadyPaid();
         assertThat(receipt.getId().length(), is(greaterThan(5)));
         assertThat(receipt.getReference(), is(equalTo("RANDOM2")));
         assertThat(receipt.getAmount(), is(closeTo(200.0, 0.00001)));

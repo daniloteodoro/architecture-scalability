@@ -17,7 +17,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -80,8 +79,8 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
                 .build();
 
         var orderPayment = OrderPaymentDetailMessage.newBuilder();
-        if (receipt instanceof Card.OrderAlreadyPayedReceipt)
-            orderPayment.setOrderAlreadyPayed(paymentReceipt);
+        if (receipt instanceof Card.OrderAlreadyPaidReceipt)
+            orderPayment.setOrderAlreadyPaid(paymentReceipt);
         else
             orderPayment.setReceipt(paymentReceipt);
 

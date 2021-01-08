@@ -1,4 +1,4 @@
-package com.scale.check_out.application;
+package com.scale.check_out.application.controller;
 
 import com.scale.check_out.domain.metrics.BusinessMetrics;
 import io.javalin.http.Context;
