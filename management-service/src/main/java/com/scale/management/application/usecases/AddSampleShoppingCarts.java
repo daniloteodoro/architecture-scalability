@@ -1,8 +1,7 @@
-package com.scale.management.domain.usecases;
+package com.scale.management.application.usecases;
 
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;
-import com.scale.management.domain.model.CannotBuildSampleShoppingCart;
 import com.scale.management.domain.model.ShoppingCartPublisher;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

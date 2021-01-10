@@ -1,4 +1,4 @@
-package com.scale.check_out.domain.model.order;
+package com.scale.check_out.application.services.order;
 
 import com.scale.domain.Order;
 import com.scale.domain.ShoppingCart;

@@ -1,7 +1,7 @@
 package com.scale.management;
 
-import com.scale.management.application.ShoppingCartController;
-import com.scale.management.domain.usecases.AddSampleShoppingCarts;
+import com.scale.management.application.controller.ShoppingCartController;
+import com.scale.management.application.usecases.AddSampleShoppingCarts;
 import com.scale.management.infrastructure.shoppingcart.ShoppingCartPublisherUsingAMQP;
 import com.scale.management.infrastructure.kibana.ConfigureDashboards;
 import com.scale.management.infrastructure.queue.RabbitMQChannelHandler;

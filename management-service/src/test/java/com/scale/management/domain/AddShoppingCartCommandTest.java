@@ -1,6 +1,6 @@
 package com.scale.management.domain;
 
-import static com.scale.management.domain.usecases.AddSampleShoppingCarts.*;
+import static com.scale.management.application.usecases.AddSampleShoppingCarts.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;

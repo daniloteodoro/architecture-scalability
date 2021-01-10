@@ -2,8 +2,8 @@ package com.scale.check_out.infrastructure.order;
 
 import com.google.protobuf.Timestamp;
 import com.scale.check_out.application.services.payment.PaymentDto;
-import com.scale.check_out.domain.model.order.ConfirmOrder;
-import com.scale.check_out.domain.model.order.ConvertShoppingCart;
+import com.scale.check_out.application.services.order.ConfirmOrder;
+import com.scale.check_out.application.services.order.ConvertShoppingCart;
 import com.scale.domain.Order;
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;

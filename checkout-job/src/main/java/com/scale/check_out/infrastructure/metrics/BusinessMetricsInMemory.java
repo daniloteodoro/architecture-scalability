@@ -1,15 +1,13 @@
 package com.scale.check_out.infrastructure.metrics;
 
-import com.scale.check_out.domain.model.SessionWasNotStartedError;
+import com.scale.check_out.domain.metrics.SessionWasNotStartedError;
 import com.scale.check_out.domain.metrics.BusinessMetrics;
 import lombok.Value;
 
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;

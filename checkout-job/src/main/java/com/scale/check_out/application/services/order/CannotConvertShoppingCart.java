@@ -1,4 +1,6 @@
-package com.scale.check_out.domain.model;
+package com.scale.check_out.application.services.order;
+
+import com.scale.check_out.application.services.CheckOutError;
 
 public class CannotConvertShoppingCart extends CheckOutError {
     public CannotConvertShoppingCart() {

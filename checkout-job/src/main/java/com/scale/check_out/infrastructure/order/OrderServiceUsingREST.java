@@ -1,8 +1,8 @@
 package com.scale.check_out.infrastructure.order;
 
 import com.scale.check_out.application.services.payment.PaymentDto;
-import com.scale.check_out.domain.model.order.ConfirmOrder;
-import com.scale.check_out.domain.model.order.ConvertShoppingCart;
+import com.scale.check_out.application.services.order.ConfirmOrder;
+import com.scale.check_out.application.services.order.ConvertShoppingCart;
 import com.scale.domain.*;
 import kong.unirest.HttpStatus;
 import kong.unirest.Unirest;

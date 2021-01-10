@@ -1,4 +1,4 @@
-package com.scale.check_out.domain.model;
+package com.scale.check_out.application.services;
 
 public class CheckOutError extends RuntimeException {
     public CheckOutError() {

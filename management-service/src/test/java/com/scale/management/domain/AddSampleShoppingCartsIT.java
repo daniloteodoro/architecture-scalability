@@ -1,9 +1,9 @@
 package com.scale.management.domain;
 
 import com.scale.management.ManagementApp;
-import com.scale.management.application.ShoppingCartController;
+import com.scale.management.application.controller.ShoppingCartController;
 import com.scale.management.domain.model.ShoppingCartPublisher;
-import com.scale.management.domain.usecases.AddSampleShoppingCarts;
+import com.scale.management.application.usecases.AddSampleShoppingCarts;
 import io.restassured.RestAssured;
 import org.apache.http.HttpStatus;
 
