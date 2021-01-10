@@ -1,9 +1,9 @@
 package com.scale.check_out.application.usecases;
 
 import com.scale.check_out.application.services.payment.PayOrder;
-import com.scale.check_out.domain.model.CannotConvertShoppingCart;
-import com.scale.check_out.domain.model.order.ConfirmOrder;
-import com.scale.check_out.domain.model.order.ConvertShoppingCart;
+import com.scale.check_out.application.services.order.CannotConvertShoppingCart;
+import com.scale.check_out.application.services.order.ConfirmOrder;
+import com.scale.check_out.application.services.order.ConvertShoppingCart;
 import com.scale.check_out.domain.metrics.BusinessMetrics;
 import com.scale.domain.ShoppingCart;
 import lombok.AllArgsConstructor;

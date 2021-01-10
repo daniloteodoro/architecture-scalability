@@ -3,7 +3,7 @@ package com.scale.check_out.infrastructure.queue;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.scale.check_out.domain.model.CheckOutError;
+import com.scale.check_out.application.services.CheckOutError;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

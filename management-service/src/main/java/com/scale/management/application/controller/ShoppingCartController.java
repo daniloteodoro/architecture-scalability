@@ -1,7 +1,7 @@
-package com.scale.management.application;
+package com.scale.management.application.controller;
 
-import com.scale.management.domain.model.ManagementError;
-import com.scale.management.domain.usecases.AddSampleShoppingCarts;
+import com.scale.management.application.ManagementError;
+import com.scale.management.application.usecases.AddSampleShoppingCarts;
 import io.javalin.http.Context;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -57,7 +57,7 @@ public class ShoppingCartController {
             log.info(String.format("Started posting %d sample shopping carts for %d seconds for session %s", numberOfSamples, seconds, sessionId));
             for (int i = 0; i < seconds; i++) {
                 var start = System.currentTimeMillis();
-                postSamplesToSession(numberOfSamples, sessionId, (i == 0), (i == (seconds-1)), numberOfSamples * seconds);
+                postSamplesToSession(numberOfSamples, sessionId, (i == 0), (i == (seconds-1)), (long) numberOfSamples * seconds);
                 var remainingTime = 1000 - (System.currentTimeMillis() - start);
                 if (remainingTime < 1) {
                     log.error("Time to post %d sample shopping carts exceed 1 second (unstable)");

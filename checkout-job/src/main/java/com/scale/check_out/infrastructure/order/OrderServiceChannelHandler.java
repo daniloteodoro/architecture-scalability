@@ -1,6 +1,6 @@
 package com.scale.check_out.infrastructure.order;
 
-import com.scale.check_out.domain.model.CheckOutError;
+import com.scale.check_out.application.services.CheckOutError;
 import com.scale.order.OrderServiceGrpc;
 import io.grpc.ManagedChannelBuilder;
 import lombok.extern.slf4j.Slf4j;

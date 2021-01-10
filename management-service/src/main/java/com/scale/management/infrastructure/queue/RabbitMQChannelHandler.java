@@ -3,7 +3,7 @@ package com.scale.management.infrastructure.queue;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.scale.management.domain.model.ManagementError;
+import com.scale.management.application.ManagementError;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

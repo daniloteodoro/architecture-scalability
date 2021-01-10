@@ -1,4 +1,4 @@
-package com.scale.management.domain.model;
+package com.scale.management.application;
 
 public class ManagementError extends RuntimeException {
     public ManagementError() {
