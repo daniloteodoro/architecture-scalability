@@ -24,6 +24,8 @@ spec:
             value: amqp://guest:guest@rabbitmq
           - name: ORDER_API_HOST
             value: order-api
+          - name: PAYMENT_API_HOST
+            value: payment-api
   strategy:
     type: RollingUpdate
     rollingUpdate:

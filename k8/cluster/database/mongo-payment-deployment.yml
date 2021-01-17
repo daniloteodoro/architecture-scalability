@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-payment
+spec:
+  selector:
+    matchLabels:
+      app: mongo-payment
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongo-payment
+        role: master
+        tier: backend
+    spec:
+      containers:
+        - name: mongopaymentcontainer
+          image: mongo
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: paymentservice
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: ps89fsj&2#
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongo-payment-pvc

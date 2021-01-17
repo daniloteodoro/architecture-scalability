@@ -8,7 +8,7 @@ if ! docker login; then
 fi
 
 source .env
-# Set your own user on docker hub in the .env file (DOCKERHUB_USER variable)
+# Set your own user on docker hub user in the .env file (DOCKERHUB_USER variable)
 if [[ -z $DOCKERHUB_USER ]]; then
   echo "Environment variable DOCKERHUB_USER is obligatory"
   exit 1
@@ -31,4 +31,5 @@ mvn clean install
 # Create and push docker images to repo
 mvn -f ./checkout-job/pom.xml jib:build
 mvn -f ./order-service/pom.xml jib:build
+mvn -f ./payment-service/pom.xml jib:build
 mvn -f ./management-service/pom.xml jib:build

@@ -14,7 +14,7 @@ mkdir -p generated
 echo "All pre-requisites set, replacing DOCKERHUB_USER inside yml files with: $DOCKERHUB_USER"
 
 # Replace $DOCKERHUB_USER content with environment variable's content
-for f in $(find ./queue ./elk ./core -regex '.*\.yml'); do
+for f in $(find ./queue ./elk ./core ./database -regex '.*\.yml'); do
   envsubst < $f > "./generated/$(basename $f)";
 done
 
