@@ -141,7 +141,7 @@
                     <container>
                         <mainClass>${main-class}</mainClass>
                         <ports>
-                            <port>8000</port>
+                            <port>8100</port>
                         </ports>
                     </container>
                 </configuration>

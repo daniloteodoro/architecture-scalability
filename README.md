@@ -1,7 +1,7 @@
 # architecture_scalability
 
 Main purpose of this project is to show, in numbers (metrics), how the architectural choice and deployment affect performance and scalability.
-Blocking and non-blocking architectures, REST, gRPC, and Reactive implementations, in search for higher throughput with low latency.
+Blocking and non-blocking architectures, REST and gRPC, with Reactive implementations, in search for higher throughput and low latency.
 
 ### Building and running as a cluster in Kubernetes (aws or minikube)
 Enter directory `/architecture_scalability/k8/cluster` (I'll assume you're running scripts from there) <br>
@@ -21,12 +21,12 @@ After that run the script to build and push ELK (ElasticSearch/Logstash/Kibana) 
 
 You will need the container images in your repo. We use [Jib](https://github.com/GoogleContainerTools/jib) for that. 
 The pre-requisite to use jib is to have an environment variable DOCKERHUB_USER set to your docker hub repository.
-You can source the .env file you previously configured for that, though the easiest way is to run the script on the deployment directory:
+You can source the .env file you previously configured for that, though the easiest way is to run the script on the deployment directory (you need maven installed):
 
 * `./architecture_scalability/k8/cluster$ ../../deployment/build_project_push_images.sh`
 
 You can now deploy RabbitMQ, ElasticSearch/Logstash/Kibana and the services by running: <br>
-* `./architecture_scalability/k8/cluster$ ./1-deploy-queue-elk-services.sh` <br>
+* `./architecture_scalability/k8/cluster$ ./1-deploy-storage-elk-services.sh` <br>
 
 **Important**: the script above replaces $DOCKERHUB_USER inside the Kubernetes deployment files!
 
@@ -39,6 +39,7 @@ Check section below "Monitoring performance" to see how you can play with it.
 Some handy commands to check how deployment is going: <br>
  * `kubectl get deployments`
 * `kubectl get pods`
+* `kubectl logs <pod_name>`
 * `kubectl describe pod <NAME>`
 * `kubectl get ingress`
 * `kubectl get service -n ingress-nginx`
@@ -55,22 +56,26 @@ Build the projects <br>
 Then start the docker files inside directories `checkout-job/docker` and `elk`, and run each service, although the easier way is using the convenience script below: <br>
 `./architecture_scalability$ ./deployment/local_deploy.sh`
 
-After around 1 minute the services should be ready - just be aware that fist run might take much longer, as Docker has to pull all images for rabbit and ELK. 
+After around 1 minute the services should be ready - just be aware that fist run will take much longer, as Docker has to pull all images for RabbitMq, MongoDb, ELK, etc. 
 Check section below "Monitoring performance" to see how you can play with it.
 
 ### Monitoring performance
-Here I'm using localhost (running locally), but depending on deployment type it can be the ip returned by the command `minikube ip` or `kubectl get ingress`, in case of the aws deployment.
+The process starts with the creation of shopping carts to be processed. These shopping carts will be processed by the 
+checkout-job, which in turn uses the order service and payment service to transform the shopping cart in an actual completed order.
+This process can be followed through metrics visualized inside Kibana.
 
-Browse to `http://localhost:5601/` and log into kibana (default user `elastic`, password `changeme`).
-There you will find the Dashboard named `Performance`. This dashboard uses a parameter `session_id` that will be explained shortly.
+1. Enter Kibana by pointing your browser to: `http://<ip>:5601/` (default user `elastic`, password `changeme`)
+2. Find a dashboard named **Performance**. This dashboard uses a parameter `session_id` that will be explained shortly.
+3. Generate some shopping carts by POSTing to `http://<ip>:9000/shopping-cart/samples/200`
 
-At this point you can create sample shopping carts using the Management api. In the terminal you could run: <br>
-`curl -X POST http://localhost:9000/shopping-cart/samples/2000` <br>
-or <br>
-`curl -X POST http://localhost:9000/shopping-cart/samples/1000/for/30/seconds`
+The `<ip>` depends on your deployment type: <br>
+**Local**: `127.0.0.1` <br>
+**Minikube**: the ip returned by the command: `minikube ip` <br>
+**AWS**: the ip returned by the command: `kubectl get ingress`
 
-Both requests return a `session_id` as result, which you can copy and paste to Kibana's dashboard "Performance".
+The POST request returns a `session_id`, which you can copy and paste into Kibana's dashboard "Performance".
 Remember to adjust the date/time ranges inside the Dashboard.
+![Dashboard with session id in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/kibana_dashboard_sessionid.png?raw=true)
 
 ### Main management interface
 The system is governed by the Management service. It contains the following endpoints:
@@ -82,7 +87,7 @@ For example: <br>
     `curl -X POST http://$(kubectl get ingress -o=jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/shopping-cart/samples/10` (minikube)
 
 #### Using your own domain
-Inside Route53, select your Hosted Zone and copy its name servers (NS) to your custom domain (you can register one for free here http://www.dot.tk/). 
+Inside Route53, select your Hosted Zone and copy its name servers (NS) to your custom domain (you can register one for free on http://www.dot.tk/). 
 After that, create a new Record and fill in the section "Value/Route traffic to" as instructed below (at least when using the Create Record Wizard):
 * Alias to Network Load Balancer
 * < your aws region >
@@ -95,4 +100,3 @@ Example using the test domain _scale-order.tk_ with the new record called "apps"
 * Management API: http://apps.scale-order.tk/shopping-cart/samples/10
 
 // TODO: Add dashboard picture. Show how to switch between architecture types.
-// Create deployment for MongoDb

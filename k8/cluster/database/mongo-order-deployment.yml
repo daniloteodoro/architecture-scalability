@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-order
+spec:
+  selector:
+    matchLabels:
+      app: mongo-order
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongo-order
+        role: master
+        tier: backend
+    spec:
+      containers:
+        - name: mongoordercontainer
+          image: mongo
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: orderservice
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: s89fsj&2#
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongo-order-pvc

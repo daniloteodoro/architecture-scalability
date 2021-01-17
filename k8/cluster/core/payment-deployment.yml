@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-api
+  name: payment-api
 spec:
   selector:
     matchLabels:
-      app: order-api
+      app: payment-api
       tier: backend
   replicas: 1
   template:
     metadata:
       labels:
-        app: order-api
+        app: payment-api
         tier: backend
     spec:
       containers:
-      - name: container-order-api
-        image: $DOCKERHUB_USER/order-service:latest
+      - name: container-payment-api
+        image: $DOCKERHUB_USER/payment-service:latest
         ports:
-          - containerPort: 8000
+          - containerPort: 8100
         env:
-          - name: MONGOORDER_CS
-            value: "mongodb://orderservice:s89fsj&2#@mongo-order/admin"
+          - name: MONGOPAYMENT_CS
+            value: "mongodb://paymentservice:ps89fsj&2#@mongo-payment:27018/admin"
   strategy:
     type: RollingUpdate
     rollingUpdate:

@@ -17,7 +17,7 @@ public class MongoConfig {
     public MongoClient getClient() {
         // Get values from config file
         ConnectionString connectionString =
-                new ConnectionString(System.getenv().getOrDefault("mongodb.uri", "mongodb://paymentservice:ps89fsj&2#@127.0.0.1:27018/admin"));
+                new ConnectionString(System.getenv().getOrDefault("MONGOPAYMENT_CS", "mongodb://paymentservice:ps89fsj&2#@0.0.0.0:27018/admin"));
 
         // TODO: Remove automatic POJO mappers
         CodecRegistry pojoCodecRegistry = fromProviders(
