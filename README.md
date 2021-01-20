@@ -3,15 +3,17 @@
 Main purpose of this project is to show, in numbers (metrics), how the architectural choice and deployment affect performance and scalability.
 Blocking and non-blocking architectures, REST and gRPC, with Reactive implementations, in search for higher throughput and low latency.
 
-### Building and running as a cluster in Kubernetes (aws or minikube)
+### Building and running as a cluster in Kubernetes (minikube or AWS)
 Enter directory `/architecture_scalability/k8/cluster` (I'll assume you're running scripts from there) <br>
 
 Start by running either: <br>
-* `./architecture_scalability/k8/cluster$ ./0-start-minikube.sh` (requires [minikube](https://minikube.sigs.k8s.io/docs/start/)) or <br>
+* `./architecture_scalability/k8/cluster$ ./0-start-minikube.sh` (requires [minikube](https://minikube.sigs.k8s.io/docs/start/) installed) or <br>
 * `./architecture_scalability/k8/cluster$ ./0-start-aws.sh <your_cluster_name>` (requires [kops](https://kops.sigs.k8s.io/getting_started/install/) installed).
 
 Pass your cluster name to the AWS script. This option also requires a hosted zone configured in Route53 in AWS, which will default to your cluster name.
 Kops will use AWS credentials from environment variables. Follow instructions given by kops after running the script.
+
+**Important**: don't forget to delete your resources on AWS after use! (`kops delete cluster <your_cluster_name> --yes`)
 
 Make sure the command `docker login` is working, so you can push images to your own repository.
 Your repository name should be configured in the env file in `../../deployment/.env`. 
@@ -84,13 +86,13 @@ The system is governed by the Management service. It contains the following endp
 For example: <br>
     `http://localhost:9000/shopping-cart/samples/1000/for/30/seconds` (local) or <br>
     `curl -X POST http://$(minikube ip)/shopping-cart/samples/10` (minikube) or <br>
-    `curl -X POST http://$(kubectl get ingress -o=jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/shopping-cart/samples/10` (minikube)
+    `curl -X POST http://$(kubectl get ingress -o=jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')/shopping-cart/samples/10` (AWS)
 
 #### Using your own domain
 Inside Route53, select your Hosted Zone and copy its name servers (NS) to your custom domain (you can register one for free on http://www.dot.tk/). 
 After that, create a new Record and fill in the section "Value/Route traffic to" as instructed below (at least when using the Create Record Wizard):
 * Alias to Network Load Balancer
-* < your aws region >
+* < your AWS region >
 * < Associate with the ELB created previously >
 
 You now should be able to reach your deployment using your custom domain, and the ingress controller will continue redirecting to services as usual:
@@ -98,5 +100,7 @@ You now should be able to reach your deployment using your custom domain, and th
 Example using the test domain _scale-order.tk_ with the new record called "apps" <br>
 * Kibana: http://apps.scale-order.tk/
 * Management API: http://apps.scale-order.tk/shopping-cart/samples/10
+
+
 
 // TODO: Add dashboard picture. Show how to switch between architecture types.
