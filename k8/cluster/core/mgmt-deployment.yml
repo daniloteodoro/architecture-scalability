@@ -24,6 +24,8 @@ spec:
             value: amqp://guest:guest@rabbitmq
           - name: KIBANA_HOST
             value: kibana
+          - name: ES_HOST
+            value: elasticsearch
           - name: INDEX_CONFIG_FILE
             value: /kibana-setup/index_and_dashboard.ndjson
 
