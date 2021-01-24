@@ -1,7 +1,22 @@
 # architecture_scalability
 
 Main purpose of this project is to show, in numbers (metrics), how the architectural choice and deployment affect performance and scalability.
-Blocking and non-blocking architectures, REST and gRPC, with Reactive implementations, in search for higher throughput and low latency.
+REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for higher throughput and low latency.
+
+### The idea
+I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment choices. 
+Latency affects contract SLAs and user experience (UX), and its analysis may help defining the maximum throughput allowed for an individual application).
+
+![Dashboard in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/scalability_dashboard_730tps.png?raw=true)
+
+Certain parameters like throughput can be estimated using [Little's law](https://en.wikipedia.org/wiki/Little%27s_law), but I preferred an empirical test.
+As described below, by changing the shopping carts per second (arrival rate), or by adding/removing nodes in the cluster (capacity, scaling in/out), one can 
+observe how the system behaves with live metrics. The metrics include the whole process from user (request) point-of-view, e.g. latency starts counting 
+when a fictional shopping cart is created and finishes when the respective order is completed.
+
+(add sequence diagram)
+
+Deployment explanation and diagram
 
 ### Building and running as a cluster in Kubernetes (minikube or AWS)
 Enter directory `/architecture_scalability/k8/cluster` (I'll assume you're running scripts from there) <br>
