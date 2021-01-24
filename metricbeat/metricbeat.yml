@@ -23,7 +23,7 @@ metricbeat.config.modules:
 
 setup.template.settings:
   index.number_of_shards: 1
-  index.codec: best_compression
+  index.codec: default
   #_source.enabled: false
 
 # ================================== General ===================================
@@ -45,7 +45,7 @@ setup.template.settings:
 # These settings control loading the sample dashboards to the Kibana index. Loading
 # the dashboards is disabled by default and can be enabled either by setting the
 # options here or by using the `setup` command.
-setup.dashboards.enabled: true
+setup.dashboards.enabled: false
 
 # The URL from where to download the dashboards archive. By default this URL
 # has a value which is computed based on the Beat name and version. For released
@@ -115,10 +115,10 @@ output.logstash:
   enabled: false
 
   # The Logstash hosts
-#  hosts: ["127.0.0.1:5000"]
-#  index: metricbeat
-#  username: "elastic"
-#  password: "changeme"
+  #  hosts: ["127.0.0.1:5000"]
+  #  index: metricbeat
+  #  username: "elastic"
+  #  password: "changeme"
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
@@ -198,7 +198,7 @@ logging.selectors: ["*"]
   # If api_key is set then secret_token will be ignored.
   #api_key:
 
-  # Secret token for the APM Server(s).
+# Secret token for the APM Server(s).
 #secret_token:
 
 

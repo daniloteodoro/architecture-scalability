@@ -32,6 +32,7 @@ public class ConfigureDashboards {
                             .maxAttempts(10)
                             .waitDuration(Duration.ofMillis(5000))
                             .retryExceptions(Exception.class)
+                            .ignoreExceptions(IndexWithIncorrectStructure.class)
                             .build();
                     Retry retry = Retry.of("kibanaConfigRetry", config);
                     retry.executeRunnable(() -> {
@@ -48,11 +49,10 @@ public class ConfigureDashboards {
     private static void applyDashboardTemplate(String kibanaHost, InputStream configFile) {
         log.info("Checking Kibana setup...");
         HttpResponse<JsonNode> response = Unirest.get(String.format("http://%s:5601/api/saved_objects/_find", kibanaHost))
-                .queryString("type", "index-pattern")
+                .queryString("type", "dashboard")
                 .queryString("search_fields", "title")
-                .queryString("search", "logstash")
+                .queryString("search", "scalability")
                 .header("kbn-xsrf", "true")
-                .header("Content-Type", "application/json")
                 .basicAuth("elastic", "changeme")
                 .asJson();
         if (response.getStatus() != 200) {
@@ -97,11 +97,21 @@ public class ConfigureDashboards {
             throw new DashboardConfigurationError(String.format("Failure %d contacting ES on host '%s'", response.getStatus(), elasticSearchHost));
         }
 
-        var templatePayload = currentTemplate.getBody().getObject().getJSONObject("metricbeat-7.10.2");
+        if (!currentTemplate.getBody().getObject().has("metricbeat-7.10.2"))
+            throw new IndexWithIncorrectStructure("Index metricbeat-7.10.2 does not contain the expected structure");
+
+        var templatePayload = currentTemplate.getBody()
+                .getObject()
+                .getJSONObject("metricbeat-7.10.2");
+        if (!templatePayload.has("settings") ||
+                !templatePayload.getJSONObject("settings").has("index"))
+            throw new IndexWithIncorrectStructure("Index metricbeat-7.10.2 does not contain the expected structure");
+
         templatePayload
                 .getJSONObject("settings")
                 .getJSONObject("index")
                 .put("refresh_interval", String.format("%ds", seconds));
+
         response = Unirest.put(String.format("http://%s:9200/_template/metricbeat-7.10.2", elasticSearchHost))
                 .header("Content-Type", "application/json")
                 .basicAuth("elastic", "changeme")   // ugh!
@@ -113,12 +123,17 @@ public class ConfigureDashboards {
         log.info("ElasticSearch indices are configured");
     }
 
-    private static InputStream getLocalDashboardConfiguration() throws FileNotFoundException {
+    private static InputStream getLocalDashboardConfiguration() {
         return ConfigureDashboards.class.getClassLoader().getResourceAsStream("setup/index_and_dashboard.ndjson");
     }
 
     static class DashboardConfigurationError extends RuntimeException {
         public DashboardConfigurationError(String msg) {
+            super(msg);
+        }
+    }
+    static class IndexWithIncorrectStructure extends DashboardConfigurationError {
+        public IndexWithIncorrectStructure(String msg) {
             super(msg);
         }
     }
