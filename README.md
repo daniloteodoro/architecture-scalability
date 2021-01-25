@@ -1,22 +1,22 @@
 # architecture_scalability
 
-Main purpose of this project is to show, in numbers (metrics), how the architectural choice and deployment affect performance and scalability.
+Main purpose of this project is to show in numbers how the architectural choice and deployment affect performance and scalability.
 REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for higher throughput and low latency.
 
 ### The idea
-I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment choices. 
-Latency affects contract SLAs and user experience (UX), and its analysis may help defining the maximum throughput allowed for an individual application).
+I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment setups. 
 
 ![Dashboard in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/scalability_dashboard_730tps.png?raw=true)
 
+Latency, for example, affects contract SLAs and user experience (UX), and its analysis may help defining the maximum throughput allowed for an individual application).
 Certain parameters like throughput can be estimated using [Little's law](https://en.wikipedia.org/wiki/Little%27s_law), but I preferred an empirical test.
 As described below, by changing the shopping carts per second (arrival rate), or by adding/removing nodes in the cluster (capacity, scaling in/out), one can 
-observe how the system behaves with live metrics. The metrics include the whole process from user (request) point-of-view, e.g. latency starts counting 
+observe how the system with a certain architecture behaves, with live metrics. The metrics include the whole process from a user (request) point-of-view, e.g. latency starts counting 
 when a fictional shopping cart is created and finishes when the respective order is completed.
 
-(add sequence diagram)
+![Steps until an order gets created](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/ProcessOrder-sequence-diagram.png?raw=true)
 
-Deployment explanation and diagram
+![Deployment diagram](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/container-diagram.png?raw=true)
 
 ### Building and running as a cluster in Kubernetes (minikube or AWS)
 Enter directory `/architecture_scalability/k8/cluster` (I'll assume you're running scripts from there) <br>
@@ -115,7 +115,3 @@ You now should be able to reach your deployment using your custom domain, and th
 Example using the test domain _scale-order.tk_ with the new record called "apps" <br>
 * Kibana: http://apps.scale-order.tk/
 * Management API: http://apps.scale-order.tk/shopping-cart/samples/10
-
-
-
-// TODO: Add dashboard picture. Show how to switch between architecture types.
