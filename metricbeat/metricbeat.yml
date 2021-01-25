@@ -23,12 +23,8 @@ metricbeat.config.modules:
 
 setup.template.settings:
   index.number_of_shards: 1
-  index.codec: best_compression
+  index.codec: default
   #_source.enabled: false
-
-setup.template.name: "metricbeat"
-setup.template.pattern: "metricbeat-*"
-
 
 # ================================== General ===================================
 
@@ -49,7 +45,7 @@ setup.template.pattern: "metricbeat-*"
 # These settings control loading the sample dashboards to the Kibana index. Loading
 # the dashboards is disabled by default and can be enabled either by setting the
 # options here or by using the `setup` command.
-#setup.dashboards.enabled: false
+setup.dashboards.enabled: false
 
 # The URL from where to download the dashboards archive. By default this URL
 # has a value which is computed based on the Beat name and version. For released
@@ -67,7 +63,9 @@ setup.kibana:
   # Scheme and port can be left out and will be set to the default (http and 5601)
   # In case you specify and additional path, the scheme is required: http://localhost:5601/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
-  #host: "localhost:5601"
+  host: "127.0.0.1:5601"
+  username: "elastic"
+  password: "changeme"
 
   # Kibana Space ID
   # ID of the Kibana Space into which the dashboards should be loaded. By default,
@@ -92,15 +90,15 @@ setup.kibana:
 # Configure what output to use when sending the data collected by the beat.
 
 # ---------------------------- Elasticsearch Output ----------------------------
-#output.elasticsearch:
+output.elasticsearch:
 
   # Disable elasticsearch. Will always forward to Logstash.
-  #enabled: false
+  enabled: true
 
   # Array of hosts to connect to.
-  #hosts: ["localhost:9200"]
-  #username: "elastic"
-  #password: "changeme"
+  hosts: ["127.0.0.1:9200"]
+  username: "elastic"
+  password: "changeme"
 
   # Protocol - either `http` (default) or `https`.
   #protocol: "https"
@@ -111,14 +109,16 @@ setup.kibana:
   #password: "changeme"
 
 # ------------------------------ Logstash Output -------------------------------
+
+# Disabled
 output.logstash:
-  enabled: true
+  enabled: false
 
   # The Logstash hosts
-  hosts: ["127.0.0.1:5000"]
-
-  # Suggested when using certain plugins
-  worker: 1
+  #  hosts: ["127.0.0.1:5000"]
+  #  index: metricbeat
+  #  username: "elastic"
+  #  password: "changeme"
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
@@ -158,48 +158,48 @@ logging.files:
 # "publish", "service".
 logging.selectors: ["*"]
 
-# ============================= X-Pack Monitoring ==============================
-# Metricbeat can export internal metrics to a central Elasticsearch monitoring
-# cluster.  This requires xpack monitoring to be enabled in Elasticsearch.  The
-# reporting is disabled by default.
+  # ============================= X-Pack Monitoring ==============================
+  # Metricbeat can export internal metrics to a central Elasticsearch monitoring
+  # cluster.  This requires xpack monitoring to be enabled in Elasticsearch.  The
+  # reporting is disabled by default.
 
-# Set to true to enable the monitoring reporter.
-#monitoring.enabled: false
+  # Set to true to enable the monitoring reporter.
+  #monitoring.enabled: false
 
-# Sets the UUID of the Elasticsearch cluster under which monitoring data for this
-# Metricbeat instance will appear in the Stack Monitoring UI. If output.elasticsearch
-# is enabled, the UUID is derived from the Elasticsearch cluster referenced by output.elasticsearch.
-#monitoring.cluster_uuid:
+  # Sets the UUID of the Elasticsearch cluster under which monitoring data for this
+  # Metricbeat instance will appear in the Stack Monitoring UI. If output.elasticsearch
+  # is enabled, the UUID is derived from the Elasticsearch cluster referenced by output.elasticsearch.
+  #monitoring.cluster_uuid:
 
-# Uncomment to send the metrics to Elasticsearch. Most settings from the
-# Elasticsearch output are accepted here as well.
-# Note that the settings should point to your Elasticsearch *monitoring* cluster.
-# Any setting that is not set is automatically inherited from the Elasticsearch
-# output configuration, so if you have the Elasticsearch output configured such
-# that it is pointing to your Elasticsearch monitoring cluster, you can simply
-# uncomment the following line.
-#monitoring.elasticsearch:
+  # Uncomment to send the metrics to Elasticsearch. Most settings from the
+  # Elasticsearch output are accepted here as well.
+  # Note that the settings should point to your Elasticsearch *monitoring* cluster.
+  # Any setting that is not set is automatically inherited from the Elasticsearch
+  # output configuration, so if you have the Elasticsearch output configured such
+  # that it is pointing to your Elasticsearch monitoring cluster, you can simply
+  # uncomment the following line.
+  #monitoring.elasticsearch:
 
-# ============================== Instrumentation ===============================
+  # ============================== Instrumentation ===============================
 
-# Instrumentation support for the metricbeat.
-#instrumentation:
-    # Set to true to enable instrumentation of metricbeat.
-    #enabled: false
+  # Instrumentation support for the metricbeat.
+  #instrumentation:
+  # Set to true to enable instrumentation of metricbeat.
+  #enabled: false
 
-    # Environment in which metricbeat is running on (eg: staging, production, etc.)
-    #environment: ""
+  # Environment in which metricbeat is running on (eg: staging, production, etc.)
+  #environment: ""
 
-    # APM Server hosts to report instrumentation results to.
-    #hosts:
-    #  - http://localhost:8200
+  # APM Server hosts to report instrumentation results to.
+  #hosts:
+  #  - http://localhost:8200
 
-    # API Key for the APM Server(s).
-    # If api_key is set then secret_token will be ignored.
-    #api_key:
+  # API Key for the APM Server(s).
+  # If api_key is set then secret_token will be ignored.
+  #api_key:
 
-    # Secret token for the APM Server(s).
-    #secret_token:
+# Secret token for the APM Server(s).
+#secret_token:
 
 
 # ================================= Migration ==================================

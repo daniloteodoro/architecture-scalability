@@ -46,7 +46,7 @@ public class ManagementApp {
             var app = ManagementApp.createUsingRESTAndAMQP();
             app.startOnPort(Integer.parseInt(paramPort));
 
-            ConfigureDashboards.forKibana();
+            ConfigureDashboards.inKibanaAndElasticSearch();
 
             log.info("App started listening on port " + paramPort);
         } catch (Exception e) {

@@ -3,10 +3,7 @@
 # Run from the context of the script's directory
 cd "$(dirname "$0")" || exit 1
 
-if ! sudo service metricbeat stop;
-then
-  echo "Failure to stop metricbeat, check whether this service is installed and that you have the appropriate permissions"
-fi
+sudo service metricbeat stop;
 
 echo "Stopping services"
 pgrep -f dependencies.jar | xargs kill
@@ -23,7 +20,7 @@ cd - || exit 1
 cd ../payment-service/docker || exit 1
 docker-compose down
 cd - || exit 1
-echo "MongoDb is being stopped"
+echo "MongoDb instances are being stopped"
 
 cd ../elk || exit 1
 docker-compose down

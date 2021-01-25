@@ -16,7 +16,7 @@ public class MetricsController {
 
     public void handleMetrics(Context context) {
         context.json(metrics.pullAllFinishedShoppingCarts());
-        logger.info("Metrics were published");
+//        logger.info("Metrics were published");
     }
 
 }

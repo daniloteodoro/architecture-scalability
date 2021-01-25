@@ -19,6 +19,7 @@ RUN metricbeat modules enable http
 COPY ./metricbeat.yml /etc/metricbeat/metricbeat.yml
 
 COPY ./http.yml /etc/metricbeat/modules.d/http.yml
+COPY ./system.yml /etc/metricbeat/modules.d/system.yml
 #RUN chown metricbeat:metricbeat /etc/metricbeat/modules.d/http.yml
 
 # Log directory

@@ -9,7 +9,7 @@ fi
 
 # Set your own user on docker hub in the .env file (DOCKERHUB_USER variable)
 source ../deployment/.env
-# ELK version (currently 7.8.0)
+# ELK version (currently 7.10.2)
 source .env
 
 if [[ -z $ELK_VERSION ]]; then
