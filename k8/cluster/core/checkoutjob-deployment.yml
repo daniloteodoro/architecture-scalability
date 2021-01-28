@@ -26,6 +26,8 @@ spec:
             value: order-api
           - name: PAYMENT_API_HOST
             value: payment-api
+          - name: PROTOCOL
+            value: $APP_PROTOCOL
   strategy:
     type: RollingUpdate
     rollingUpdate:

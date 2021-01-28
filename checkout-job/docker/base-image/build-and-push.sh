@@ -10,7 +10,7 @@ fi
 
 echo "About to build the checkout-base-image"
 
-docker image build -t checkout-base-image:0.4 . -t "$DOCKERHUB_USER/checkout-base-image:0.4" -t "$DOCKERHUB_USER/checkout-base-image:latest"
+docker image build -t checkout-base-image:0.5 . -t "$DOCKERHUB_USER/checkout-base-image:0.5" -t "$DOCKERHUB_USER/checkout-base-image:latest"
 docker push "$DOCKERHUB_USER/checkout-base-image"
 
 echo "Done"

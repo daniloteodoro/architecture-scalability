@@ -4,8 +4,8 @@ USER root
 
 RUN echo "Installing MetricBeat..."
 
-RUN curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.9.3-amd64.deb
-RUN dpkg -i metricbeat-7.9.3-amd64.deb
+RUN curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.10.2-amd64.deb
+RUN dpkg -i metricbeat-7.10.2-amd64.deb
 
 RUN echo "Configuring MetricBeat..."
 
@@ -17,9 +17,12 @@ RUN metricbeat modules enable http
 # RUN metricbeat modules enable docker (kubernetes?)
 
 COPY ./metricbeat.yml /etc/metricbeat/metricbeat.yml
+RUN chmod 644 /etc/metricbeat/metricbeat.yml
 
 COPY ./http.yml /etc/metricbeat/modules.d/http.yml
+RUN chmod 644 /etc/metricbeat/modules.d/http.yml
 COPY ./system.yml /etc/metricbeat/modules.d/system.yml
+RUN chmod 644 /etc/metricbeat/modules.d/system.yml
 #RUN chown metricbeat:metricbeat /etc/metricbeat/modules.d/http.yml
 
 # Log directory

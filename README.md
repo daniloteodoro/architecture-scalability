@@ -1,6 +1,6 @@
 # architecture_scalability
 
-Main purpose of this project is to show in numbers how the architectural choice and deployment affect performance and scalability.
+Main purpose of this project is to show in numbers how the architectural choice and deployment affect performance and scalability in a distributed system.
 REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for higher throughput and low latency.
 
 ### The idea
@@ -8,13 +8,15 @@ I wanted to see metrics like throughput, latency, and CPU usage, in various load
 
 ![Dashboard in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/scalability_dashboard_730tps.png?raw=true)
 
-Latency, for example, affects contract SLAs and user experience (UX), and its analysis may help defining the maximum throughput allowed for an individual application).
+Latency, for example, affects contract SLAs and user experience (UX), and its analysis may help to define the maximum throughput allowed for an individual application.
 Certain parameters like throughput can be estimated using [Little's law](https://en.wikipedia.org/wiki/Little%27s_law), but I preferred an empirical test.
 As described below, by changing the shopping carts per second (arrival rate), or by adding/removing nodes in the cluster (capacity, scaling in/out), one can 
 observe how the system with a certain architecture behaves, with live metrics. The metrics include the whole process from a user (request) point-of-view, e.g. latency starts counting 
 when a fictional shopping cart is created and finishes when the respective order is completed.
 
 ![Steps until an order gets created](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/ProcessOrder-sequence-diagram.png?raw=true)
+
+The deployment of the microservices is better described in the C4 container diagram below:
 
 ![Deployment diagram](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/container-diagram.png?raw=true)
 
@@ -31,13 +33,14 @@ Kops will use AWS credentials from environment variables. Follow instructions gi
 **Important**: don't forget to delete your resources on AWS after use! (`kops delete cluster <your_cluster_name> --yes`)
 
 Make sure the command `docker login` is working, so you can push images to your own repository.
-Your repository name should be configured in the env file in `../../deployment/.env`. 
+Your repository name should be configured in the env file in `../../deployment/.env`. <br>
+In this file you can also set the variable `APP_PROTOCOL` to **REST or GRPC**. <br>
 After that run the script to build and push ELK (ElasticSearch/Logstash/Kibana) images to your repository:
 
 * `./architecture_scalability/k8/cluster$ ../../elk/elk-build-and-push.sh`
 
 You will need the container images in your repo. We use [Jib](https://github.com/GoogleContainerTools/jib) for that. 
-The pre-requisite to use jib is to have an environment variable DOCKERHUB_USER set to your docker hub repository.
+The pre-requisite to build is to have an environment variable DOCKERHUB_USER set to your docker hub repository.
 You can source the .env file you previously configured for that, though the easiest way is to run the script on the deployment directory (you need maven installed):
 
 * `./architecture_scalability/k8/cluster$ ../../deployment/build_project_push_images.sh`
@@ -81,16 +84,16 @@ The process starts with the creation of shopping carts to be processed. These sh
 checkout-job, which in turn uses the order service and payment service to transform the shopping cart in an actual completed order.
 This process can be followed through metrics visualized inside Kibana.
 
-1. Enter Kibana by pointing your browser to: `http://<ip>:5601/` (default user `elastic`, password `changeme`)
-2. Find a dashboard named **Performance**. This dashboard uses a parameter `session_id` that will be explained shortly.
-3. Generate some shopping carts by POSTing to `http://<ip>:9000/shopping-cart/samples/200`
+1. Enter Kibana by pointing your browser to the ip as defined below (default user `elastic`, password `changeme`, add port `5601` for Local deployment!)
+2. Find a dashboard named **Scalability**. This dashboard uses a parameter `session_id` that will be explained shortly.
+3. Generate some shopping carts by POSTing to `http://<ip>/shopping-cart/samples/200` (add port 9000 for Local deployment!)
 
 The `<ip>` depends on your deployment type: <br>
-**Local**: `127.0.0.1` <br>
+**Local**: `127.0.0.1:5601` <br>
 **Minikube**: the ip returned by the command: `minikube ip` <br>
 **AWS**: the ip returned by the command: `kubectl get ingress`
 
-The POST request returns a `session_id`, which you can copy and paste into Kibana's dashboard "Performance".
+The POST request returns a `session_id`, which you can copy and paste into Kibana's dashboard "Scalability".
 Remember to adjust the date/time ranges inside the Dashboard.
 ![Dashboard with session id in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/kibana_dashboard_sessionid.png?raw=true)
 
