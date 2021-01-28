@@ -22,6 +22,8 @@ spec:
         env:
           - name: MONGOPAYMENT_CS
             value: "mongodb://paymentservice:ps89fsj&2#@mongo-payment:27018/admin"
+          - name: PROTOCOL
+            value: $APP_PROTOCOL
   strategy:
     type: RollingUpdate
     rollingUpdate:

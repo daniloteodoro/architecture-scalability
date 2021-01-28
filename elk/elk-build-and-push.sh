@@ -22,23 +22,25 @@ if [[ -z $DOCKERHUB_USER ]]; then
   exit 1
 fi
 
-echo "Using ELK version $ELK_VERSION and pushing images to $DOCKERHUB_USER"
+LOCAL_VERSION="0.5"
+echo "Using ELK version $ELK_VERSION and pushing images to $DOCKERHUB_USER with version $LOCAL_VERSION"
 
-ELASTICSEARCH_TAGS="-t elasticsearch:0.4 -t $DOCKERHUB_USER/elasticsearch:0.4 -t $DOCKERHUB_USER/elasticsearch:latest"
+ELASTICSEARCH_TAGS="-t elasticsearch:$LOCAL_VERSION -t $DOCKERHUB_USER/elasticsearch:$LOCAL_VERSION -t $DOCKERHUB_USER/elasticsearch:latest"
 
 echo "Building ElasticSearch image ..."
 docker image build ${ELASTICSEARCH_TAGS} ./elasticsearch/ --build-arg ELK_VERSION=${ELK_VERSION} &&
   docker push "$DOCKERHUB_USER/elasticsearch"
 echo "Done with ElasticSearch"
 
-LOGSTASH_TAGS="-t logstash:0.4 -t $DOCKERHUB_USER/logstash:0.4 -t $DOCKERHUB_USER/logstash:latest"
+# Not needed for now
+#LOGSTASH_TAGS="-t logstash:$LOCAL_VERSION -t $DOCKERHUB_USER/logstash:$LOCAL_VERSION -t $DOCKERHUB_USER/logstash:latest"
+#
+#echo "Building Logstash image ..."
+#docker image build ${LOGSTASH_TAGS} ./logstash/ --build-arg ELK_VERSION=${ELK_VERSION} &&
+#  docker push "$DOCKERHUB_USER/logstash"
+#echo "Done with Logstash"
 
-echo "Building Logstash image ..."
-docker image build ${LOGSTASH_TAGS} ./logstash/ --build-arg ELK_VERSION=${ELK_VERSION} &&
-  docker push "$DOCKERHUB_USER/logstash"
-echo "Done with Logstash"
-
-KIBANA_TAGS="-t kibana:0.4 -t $DOCKERHUB_USER/kibana:0.4 -t $DOCKERHUB_USER/kibana:latest"
+KIBANA_TAGS="-t kibana:$LOCAL_VERSION -t $DOCKERHUB_USER/kibana:$LOCAL_VERSION -t $DOCKERHUB_USER/kibana:latest"
 
 echo "Building Kibana image ..."
 docker image build ${KIBANA_TAGS} ./kibana/ --build-arg ELK_VERSION=${ELK_VERSION} &&

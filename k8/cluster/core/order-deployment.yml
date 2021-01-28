@@ -22,6 +22,8 @@ spec:
         env:
           - name: MONGOORDER_CS
             value: "mongodb://orderservice:s89fsj&2#@mongo-order/admin"
+          - name: PROTOCOL
+            value: $APP_PROTOCOL
   strategy:
     type: RollingUpdate
     rollingUpdate:
