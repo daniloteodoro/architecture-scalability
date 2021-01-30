@@ -8,6 +8,7 @@ import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryInMemory;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,8 @@ public class PaymentControllerGRPCIT {
         assertThat(receipt.getAmount(), is(closeTo(200.0, 0.00001)));
 
         // This is the card associated with client id 5ff867a5e77e950006a814ad, inserted on the startup by method PaymentRepository.insertDefaultClientsWithCards()
-        storedCard = paymentRepository.findCardByClient(new ClientId("5ff867a5e77e950006a814ad")).get();
+        storedCard = paymentRepository.findCardByClient(new ClientId("5ff867a5e77e950006a814ad"))
+                .orElseThrow(() -> new AssertionError("Card from client 5ff867a5e77e950006a814ad should exist"));
         assertThat(storedCard.getLimit(), is(equalTo(Money.of(previousLimit - 200.0))));
     }
 
@@ -79,7 +81,7 @@ public class PaymentControllerGRPCIT {
                 .setOrderId("RANDOM2")
                 .build();
         var storedCard = paymentRepository.findCardByClient(new ClientId("5ff878f5e77e950006a814b3"))
-                .orElseThrow(() -> new AssertionError("Card 5ff873c1e77e950006a814af should exist"));
+                .orElseThrow(() -> new AssertionError("Card from client 5ff878f5e77e950006a814b3 should exist"));
         var previousLimit = storedCard.getLimit().getValue().doubleValue();
 
         // Pay this order 1st time
@@ -95,7 +97,8 @@ public class PaymentControllerGRPCIT {
         assertThat(receipt.getReference(), is(equalTo("RANDOM2")));
         assertThat(receipt.getAmount(), is(closeTo(200.0, 0.00001)));
 
-        storedCard = paymentRepository.findCardByClient(new ClientId("5ff878f5e77e950006a814b3")).get();
+        storedCard = paymentRepository.findCardByClient(new ClientId("5ff878f5e77e950006a814b3"))
+                .orElseThrow(() -> new AssertionError("Card from client 5ff878f5e77e950006a814b3 should exist"));
         assertThat(storedCard.getLimit(), is(equalTo(Money.of(previousLimit - 200.0))));
     }
 
@@ -103,13 +106,34 @@ public class PaymentControllerGRPCIT {
     public void givenAValidCardWithLowBalance_WhenPayingANewOrder_ThenPaymentIsNotPerformed() {
         var stub = createBlockingStub();
         var storedCard = paymentRepository.findCardByClient(new ClientId("5ff87909e77e950006a814b5"))
-                .orElseThrow(() -> new AssertionError("Card 5ff87909e77e950006a814b5 should exist"));
+                .orElseThrow(() -> new AssertionError("Card from client 5ff87909e77e950006a814b5 should exist"));
         var paymentRequest = PaymentRequestMessage.newBuilder()
                 .setClientId("5ff87909e77e950006a814b5")
                 .setAmount(storedCard.getLimit().getValue().doubleValue() + 1.0)
                 .setOrderId("RANDOM3")
                 .build();
         Assertions.assertThrows(StatusRuntimeException.class, () -> stub.pay(paymentRequest));
+    }
+
+    // 57.290 @ 10s
+    // 241.073 @ 30s
+    // 522.991 @ 60s    (8.7k/s)
+    @Test
+    public void loadTest() {
+        var stub = createBlockingStub();
+        int count = 0;
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start <= 10_000) {
+            var paymentRequest = PaymentRequestMessage.newBuilder()
+                    .setClientId("5ff867a5e77e950006a814ad")
+                    .setAmount(200.0)
+                    .setOrderId(RandomStringUtils.random(10, true, false))
+                    .build();
+            stub.pay(paymentRequest);
+            count++;
+        }
+        System.out.println(count);
+        assertThat(count, is(greaterThan(0)));
     }
 
 }

@@ -3,8 +3,10 @@ package com.scale.payment;
 import com.google.gson.Gson;
 import com.scale.payment.application.controller.PaymentRESTController;
 import com.scale.payment.application.usecases.PayOrder;
+import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.configuration.MongoConfig;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
+import com.scale.payment.infrastructure.repository.PaymentRepositoryInMemory;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryMongo;
 import io.javalin.Javalin;
 import io.javalin.plugin.json.JavalinJson;
@@ -20,7 +22,7 @@ public class PaymentAppUsingREST {
     private Javalin app = null;
 
     public static PaymentAppUsingREST defaultSetup() {
-
+        log.info("Configuring app using MongoDb");
         var dbConfig = new MongoConfig();
 
         var paymentRepository = new PaymentRepositoryMongo(dbConfig.getClient(), dbConfig.getDatabase());
@@ -30,6 +32,17 @@ public class PaymentAppUsingREST {
         var RESTController = new PaymentRESTController(payOrder, paymentRepository);
 
         return new PaymentAppUsingREST(RESTController);
+    }
+
+    public static PaymentAppUsingREST inMemorySetup() {
+        log.info("Configuring app using in-memory persistence");
+        PaymentRepository paymentRepository = new PaymentRepositoryInMemory();
+        paymentRepository.insertDefaultClientsWithCards();
+
+        var payOrder = new PayOrder(paymentRepository);
+        var restController = new PaymentRESTController(payOrder, paymentRepository);
+
+        return new PaymentAppUsingREST(restController);
     }
 
     public void startOnPort(int port) {

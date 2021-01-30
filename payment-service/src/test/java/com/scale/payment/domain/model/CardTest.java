@@ -22,7 +22,7 @@ public class CardTest {
 
     @Test
     public void givenAnEmptyExpirationDateAnExceptionIsThrown() {
-        Assertions.assertThrows(Card.CardError.class, () -> new Card.ExpirationDate("2030/10"));
+        Assertions.assertThrows(Card.CardError.class, () -> new Card.ExpirationDate(""));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class CardTest {
     }
 
     @Test
-    public void givenACardWhenCheckingLimitForASmallAmountThenResultIsTrue() {
+    public void givenAValidCardWhenCheckingLimitForASmallAmountThenResultIsTrue() {
         var card = new Card("1234", (short)333, new Card.ExpirationDate("10/2030"), Money.of(300.0));
         assertTrue(card.hasLimitFor(Money.of(50.00)));
     }
