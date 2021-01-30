@@ -14,6 +14,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -115,25 +118,38 @@ public class PaymentControllerGRPCIT {
         Assertions.assertThrows(StatusRuntimeException.class, () -> stub.pay(paymentRequest));
     }
 
-    // 57.290 @ 10s
-    // 241.073 @ 30s
-    // 522.991 @ 60s    (8.7k/s)
+    //  57.290 in 10s (single threaded) /     256.771 in 10s (100 threads)
+    // 241.073 in 30s                   /   1.050.777 in 30s (100 threads)
+    // 522.991 in 60s    (8.7k/s)
     @Test
-    public void loadTest() {
+    public void loadTest() throws InterruptedException {
+        int WAIT_TIME_IN_SECONDS = 30;
         var stub = createBlockingStub();
-        int count = 0;
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start <= 10_000) {
-            var paymentRequest = PaymentRequestMessage.newBuilder()
-                    .setClientId("5ff867a5e77e950006a814ad")
-                    .setAmount(200.0)
-                    .setOrderId(RandomStringUtils.random(10, true, false))
-                    .build();
-            stub.pay(paymentRequest);
-            count++;
-        }
-        System.out.println(count);
-        assertThat(count, is(greaterThan(0)));
+        AtomicLong counter = new AtomicLong(0);
+        Runnable generatePayments = () -> {
+            while (System.currentTimeMillis() - start <= WAIT_TIME_IN_SECONDS * 1000) {
+                var paymentRequest = PaymentRequestMessage.newBuilder()
+                        .setClientId("5ff867a5e77e950006a814ad")
+                        .setAmount(200.0)
+                        .setOrderId(RandomStringUtils.random(10, true, false))
+                        .build();
+                stub.pay(paymentRequest);
+                counter.incrementAndGet();
+            }
+            System.out.println(Thread.currentThread().getName() + " done");
+        };
+        IntStream.rangeClosed(1, 100)
+                .mapToObj((nr) -> createNamedThread("PaymentWorker-"+nr, generatePayments))
+                .forEach(Thread::start);
+        TimeUnit.SECONDS.sleep(WAIT_TIME_IN_SECONDS);
+        System.out.println(counter.get());
+    }
+
+    private Thread createNamedThread(String name, Runnable runnable) {
+        var result = new Thread(runnable);
+        result.setName(name);
+        return result;
     }
 
 }

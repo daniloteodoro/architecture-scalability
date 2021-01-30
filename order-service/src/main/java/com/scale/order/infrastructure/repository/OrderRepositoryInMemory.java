@@ -6,10 +6,12 @@ import com.scale.order.domain.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class OrderRepositoryInMemory implements OrderRepository {
-    private final Map<Order.OrderId, Order> orders = new HashMap<>();
+    private final ConcurrentMap<Order.OrderId, Order> orders = new ConcurrentHashMap<>();
 
     @Override
     public void store(Order order) {

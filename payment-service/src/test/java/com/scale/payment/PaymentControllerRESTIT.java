@@ -10,9 +10,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-//import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 public class PaymentControllerRESTIT {
     private static final int DEFAULT_PORT = 8001;
@@ -46,21 +47,34 @@ public class PaymentControllerRESTIT {
         app.stop();
     }
 
-    // 16.650 @ 10s
-    // 118.008 @ 30s
-    // 267.568 @ 60s    (4.4k/s)
+    // 16.650  in 10s (single threaded) /   56.434  in 10s (100 threads)
+    // 118.008 in 30s                   /   315.720 in 30s (100 threads)
+    // 267.568 in 60s    (4.4k/s)
     @Test
-    public void loadTest() {
-        int count = 0;
+    public void loadTest() throws InterruptedException {
+        int WAIT_TIME_IN_SECONDS = 30;
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start <= 10_000) {
-            Unirest.post(String.format("http://127.0.0.1:%d/payments", DEFAULT_PORT))
+        AtomicLong counter = new AtomicLong(0);
+        Runnable generatePayments = () -> {
+            while (System.currentTimeMillis() - start <= WAIT_TIME_IN_SECONDS * 1000) {
+                Unirest.post(String.format("http://127.0.0.1:%d/payments", DEFAULT_PORT))
                     .body(String.format(MAKE_PAYMENT_TEMPLATE, RandomStringUtils.random(10, true, false)))
                     .asEmpty();
-            count++;
-        }
-        System.out.println(count);
-        assertThat(count, is(greaterThan(0)));
+                counter.incrementAndGet();
+            }
+            System.out.println(Thread.currentThread().getName() + " done");
+        };
+        IntStream.rangeClosed(1, 100)
+                .mapToObj((nr) -> createNamedThread("PaymentWorker-"+nr, generatePayments))
+                .forEach(Thread::start);
+        TimeUnit.SECONDS.sleep(WAIT_TIME_IN_SECONDS);
+        System.out.println(counter.get());
+    }
+
+    private Thread createNamedThread(String name, Runnable runnable) {
+        var result = new Thread(runnable);
+        result.setName(name);
+        return result;
     }
 
 }
