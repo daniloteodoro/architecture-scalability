@@ -45,6 +45,7 @@ public class PaymentRESTController {
             return;
         }
 
+        // TODO: Move call to use case
         var requestedCard = paymentRepository.findCardByClient(request.clientId);
         if (requestedCard.isEmpty()) {
             context.status(HttpStatus.NOT_FOUND_404)

@@ -1,7 +1,6 @@
 package com.scale.check_out.application.services.payment;
 
 import com.scale.domain.ShoppingCart;
-import kong.unirest.Client;
 import lombok.NonNull;
 import lombok.Value;
 
