@@ -4,6 +4,7 @@ import com.scale.payment.application.controller.PaymentReactiveRESTController;
 import com.scale.payment.application.usecases.PayOrder;
 import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.configuration.MongoConfig;
+import com.scale.payment.infrastructure.repository.PaymentReactiveRepositoryInMemory;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryInMemory;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryMongo;
 import lombok.NonNull;
@@ -12,13 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
+import reactor.netty.http.server.HttpServerRoutes;
 
 import java.time.Duration;
 
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentAppUsingReactiveREST {
-    @NonNull PaymentReactiveRESTController paymentRESTController;
+    @NonNull PaymentReactiveRESTController paymentReactiveRESTController;
 
     private DisposableServer app = null;
 
@@ -30,7 +32,10 @@ public class PaymentAppUsingReactiveREST {
         paymentRepository.insertDefaultClientsWithCards();
 
         var payOrder = new PayOrder(paymentRepository);
-        var restController = new PaymentReactiveRESTController(payOrder, paymentRepository);
+        // TODO: Use Mongo repository
+        var reactiveRepo = new PaymentReactiveRepositoryInMemory();
+        reactiveRepo.insertDefaultClientsWithCards();
+        var restController = new PaymentReactiveRESTController(payOrder, reactiveRepo);
 
         return new PaymentAppUsingReactiveREST(restController);
     }
@@ -41,7 +46,10 @@ public class PaymentAppUsingReactiveREST {
         paymentRepository.insertDefaultClientsWithCards();
 
         var payOrder = new PayOrder(paymentRepository);
-        var restController = new PaymentReactiveRESTController(payOrder, paymentRepository);
+        // TODO: Use same repository with the use case.
+        var reactiveRepo = new PaymentReactiveRepositoryInMemory();
+        reactiveRepo.insertDefaultClientsWithCards();
+        var restController = new PaymentReactiveRESTController(payOrder, reactiveRepo);
 
         return new PaymentAppUsingReactiveREST(restController);
     }
@@ -50,18 +58,15 @@ public class PaymentAppUsingReactiveREST {
         app = HttpServer.create()
                 .port(port)
                 .route(routes ->
-                        routes.get("/hello",
-                                (request, response) -> response.sendString(Mono.just("Hello World!")))
-//                                        .post("/echo", Application::handleEcho)
-//                                                (request, response) -> response.send(request.receive().retain()))
-                                .get("/path/{param}",
-                                        (request, response) -> response.sendString(Mono.just(request.param("param")))))
+                        routes.get("/hello", (request, response) -> response.sendString(Mono.just("Hello World!")))
+                                .post("/payments", paymentReactiveRESTController::handlePayment)
+                                .get("/path/{param}", (request, response) -> response.sendString(Mono.just(request.param("param")))))
                 .bindNow();
+
+        log.info("Reactive REST Server started, listening on port {}", port);
 
         app.onDispose()
                 .block();
-
-        log.info("Reactive REST Server started, listening on port {}", port);
 
 //        public RouterFunction<ServerResponse> route(PaymentReactiveRESTController paymentController) {
 //            return RouterFunctions
