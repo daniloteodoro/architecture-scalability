@@ -8,7 +8,7 @@ import com.scale.payment.domain.model.Money;
 import reactor.core.publisher.Mono;
 
 public interface PaymentReactiveRepository {
-    Mono<Void> addReceipt(Card.Receipt receipt);
+    Mono<Card.Receipt> addReceipt(Card.Receipt receipt);
     Mono<Void> addCard(Card card);
     Mono<Card.Receipt> findReceipt(Order.OrderId id, Money amount);
     Mono<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt);

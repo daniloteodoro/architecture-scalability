@@ -7,4 +7,8 @@ import lombok.Value;
 public class ClientId {
     @NonNull String value;
 
+    public boolean isValid() {
+        return value != null;
+    }
+
 }

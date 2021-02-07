@@ -21,12 +21,12 @@ public class PaymentReactiveRepositoryInMemory implements PaymentReactiveReposit
     private final ConcurrentMap<String/*OrderId*/, Map<Double/*Amount*/, Card.Receipt>> receipts = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<Void> addReceipt(Card.Receipt receipt) {
+    public Mono<Card.Receipt> addReceipt(Card.Receipt receipt) {
         if (!receipts.containsKey(receipt.getReference()))
             receipts.put(receipt.getReference(), new HashMap<>());
         receipts.get(receipt.getReference()).putIfAbsent(receipt.getAmount().getValue().doubleValue(), receipt);
         log.info("Receipt {} was stored in memory (reactive)", receipt.getNumber());
-        return Mono.empty();
+        return Mono.just(receipt);
     }
 
     @Override

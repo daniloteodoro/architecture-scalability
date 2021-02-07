@@ -1,9 +1,8 @@
 package com.scale.payment.application.controller;
 
-import java.time.ZonedDateTime;
 import com.google.gson.Gson;
 import com.scale.domain.Order;
-import com.scale.payment.application.usecases.PayOrder;
+import com.scale.payment.application.usecases.PayOrderReactive;
 import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
@@ -21,89 +20,36 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
+import java.time.ZonedDateTime;
+
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentReactiveRESTController {
-    @NonNull PayOrder payOrder;
+    @NonNull PayOrderReactive payOrder;
     @NonNull PaymentReactiveRepository paymentRepository;
 
     private final Gson gson = SerializerConfig.buildSerializer();
 
     public Publisher<Void> handlePayment(HttpServerRequest request, HttpServerResponse response) {
-//        var requestDto = getPaymentRequestFromPayload(request.receive().asString())
-//                .map(dto -> process(response, dto));
-
         return getPaymentRequestFromPayload(request.receive().asString())
-                .flatMap(dto -> validateAndPay(response, dto))
+                .flatMap(paymentRequest -> validateAndPay(response, paymentRequest))
                 .switchIfEmpty(response.status(HttpStatus.BAD_REQUEST));
-
-//        var requestDto = getPaymentRequestFromPayload(request.body);
-//
-//        if (requestDto.getOrderId() == null || requestDto.getOrderId().isBlank()) {
-//            return response.status(HttpStatus.BAD_REQUEST)
-//                    .sendString(Mono.just("Order id is mandatory").log());
-//        }
-//        if (requestDto.getAmount() <= 0d) {
-//            return response.status(HttpStatus.BAD_REQUEST)
-//                    .sendString(Mono.just("Amount must be greater than zero").log());
-//        }
-//        if (requestDto.getClientId() == null) {
-//            return response.status(HttpStatus.BAD_REQUEST)
-//                    .sendString(Mono.just("Client id is mandatory").log());
-//        }
-
-//        var requestedCard = paymentRepository.findCardByClient(requestDto.clientId);
-//        if (requestedCard.isEmpty()) {
-//            return ServerResponse.notFound()
-//                    .header("reason", String.format("Client %s was not found or has no associated card", requestDto.clientId.getValue()))
-//                    .build();
-//        }
-//
-//        // Pay order with id 123, total 342.09 with card number 9999 from client X
-//        Card.Receipt receipt;
-//        try {
-//            receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(requestDto.getOrderId()), Money.of(requestDto.getAmount()));
-//        } catch (PaymentError e) {
-//            e.printStackTrace();
-//            return ServerResponse.status(HttpStatus.PAYMENT_REQUIRED_402)
-//                    .bodyValue(e.getMessage());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR_500)
-//                    .bodyValue("Failure processing payment");
-//        }
-//
-//        log.info("Order {} was paid using Reactive REST", requestDto.getOrderId());
-//
-//        var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK_200 : HttpStatus.CREATED_201;
-//
-//        context.header("location", "/receipts/" + receipt.getNumber())
-//                .json(PaymentReceiptDto.from(receipt))
-//                .status(status);
-//        return ServerResponse.status(status)
-//                .header("location", "/receipts/" + receipt.getNumber())
-//                .body(Mono.just(PaymentReceiptDto.from(receipt)));
-
-//        return response.status(201)
-//                .addHeader("sample", "value of the sample")
-//                .sendString(Mono.just("Yeeep")
-//                        .log());
     }
 
     private Publisher<Void> validateAndPay(HttpServerResponse response, PaymentRequestDto requestDto) {
-        if (requestDto == null) {
+        if (requestDto == null || !requestDto.isValid()) {
             return response.status(HttpStatus.BAD_REQUEST)
-                    .sendString(Mono.just("Payload containing the payment request is mandatory").log());
+                    .sendString(Mono.just("Payload containing the full payment request is mandatory").log());
         }
-        if (requestDto.getOrderId() == null || requestDto.getOrderId().isBlank()) {
+        if (requestDto.getOrderId().isBlank()) {
             return response.status(HttpStatus.BAD_REQUEST)
                     .sendString(Mono.just("Order id is mandatory").log());
         }
-        if (requestDto.getAmount() == null || requestDto.getAmount() <= 0d) {
+        if (requestDto.getAmount() <= 0d) {
             return response.status(HttpStatus.BAD_REQUEST)
                     .sendString(Mono.just("Amount must be greater than zero").log());
         }
-        if (requestDto.getClientId() == null || requestDto.getClientId().getValue() == null) {
+        if (!requestDto.getClientId().isValid()) {
             return response.status(HttpStatus.BAD_REQUEST)
                     .sendString(Mono.just("Client id is mandatory").log());
         }
@@ -116,27 +62,24 @@ public class PaymentReactiveRESTController {
 
     private Mono<Void> pay(HttpServerResponse response, Card card, @NonNull String orderId, @NonNull Double amount) {
         // Pay order with id 123, total 342.09 with card number 9999 from client X
-        Card.Receipt receipt;
-        try {
-            receipt = payOrder.using(card, Order.OrderId.of(orderId), Money.of(amount));
-        } catch (PaymentError e) {
-            e.printStackTrace();
-            return Mono.from(response.status(HttpStatus.PAYMENT_REQUIRED)
-                    .sendString(Mono.just(e.getMessage()).log()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Mono.from(response.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .sendString(Mono.just("Failure processing payment").log()));
-        }
-
-        log.info("Order {} was paid using Reactive REST", orderId);
-
-        var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK : HttpStatus.CREATED;
-
-        return Mono.from(response.status(status)
-                .header("location", "/receipts/" + receipt.getNumber())
-                .header("Content-Type", "application/json")
-                .sendString(Mono.just(gson.toJson(PaymentReceiptDto.from(receipt)))));
+        return payOrder.using(card, Order.OrderId.of(orderId), Money.of(amount))
+                .flatMap(receipt -> {
+                    var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK : HttpStatus.CREATED;
+                    log.info("Order {} was paid using Reactive REST", orderId);
+                    return Mono.from(response.status(status)
+                                    .header("location", "/receipts/" + receipt.getNumber())
+                                    .header("Content-Type", "application/json")
+                                    .sendString(Mono.just(gson.toJson(PaymentReceiptDto.from(receipt)))));
+                })
+                .onErrorResume(e -> {
+                    e.printStackTrace();
+                    if (e instanceof PaymentError)
+                        return Mono.from(response.status(HttpStatus.PAYMENT_REQUIRED)
+                                .sendString(Mono.just(e.getMessage()).log()));
+                    else
+                        return Mono.from(response.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .sendString(Mono.just("Failure processing payment").log()));
+                });
     }
 
     // REST-related methods
@@ -151,6 +94,12 @@ public class PaymentReactiveRESTController {
         @NonNull Double amount;
         @NonNull String orderId;
         @NonNull ClientId clientId;
+
+        public boolean isValid() {
+            return (amount != null &&
+                    orderId != null &&
+                    clientId != null);
+        }
     }
 
     @Value
