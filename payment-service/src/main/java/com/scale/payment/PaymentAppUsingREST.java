@@ -28,8 +28,7 @@ public class PaymentAppUsingREST {
         var paymentRepository = new PaymentRepositoryMongo(dbClient, dbClient.getDatabase("payment_db"));
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrder(paymentRepository);
-        var RESTController = new PaymentRESTController(payOrder, paymentRepository);
+        var RESTController = new PaymentRESTController(new PayOrder(paymentRepository));
 
         return new PaymentAppUsingREST(RESTController);
     }
@@ -39,8 +38,7 @@ public class PaymentAppUsingREST {
         PaymentRepository paymentRepository = new PaymentRepositoryInMemory();
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrder(paymentRepository);
-        var restController = new PaymentRESTController(payOrder, paymentRepository);
+        var restController = new PaymentRESTController(new PayOrder(paymentRepository));
 
         return new PaymentAppUsingREST(restController);
     }

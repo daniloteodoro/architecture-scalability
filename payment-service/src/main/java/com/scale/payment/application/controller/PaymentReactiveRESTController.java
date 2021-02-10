@@ -7,7 +7,6 @@ import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.model.PaymentError;
-import com.scale.payment.domain.repository.PaymentReactiveRepository;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
 import kong.unirest.HttpStatus;
 import lombok.NonNull;
@@ -26,7 +25,6 @@ import java.time.ZonedDateTime;
 @Slf4j
 public class PaymentReactiveRESTController {
     @NonNull PayOrderReactive payOrder;
-    @NonNull PaymentReactiveRepository paymentRepository;
 
     private final Gson gson = SerializerConfig.buildSerializer();
 
@@ -54,15 +52,14 @@ public class PaymentReactiveRESTController {
                     .sendString(Mono.just("Client id is mandatory").log());
         }
 
-        return paymentRepository.findCardByClient(requestDto.clientId)
-                .flatMap(card -> pay(response, card, requestDto.orderId, requestDto.amount))
+        return pay(response, requestDto.clientId, requestDto.orderId, requestDto.amount)
                 .switchIfEmpty(Mono.from(response.status(HttpStatus.NOT_FOUND).
                         sendString(Mono.just(String.format("Client %s was not found or has no associated card", requestDto.clientId.getValue())))));
     }
 
-    private Mono<Void> pay(HttpServerResponse response, Card card, @NonNull String orderId, @NonNull Double amount) {
+    private Mono<Void> pay(HttpServerResponse response, ClientId card, String orderId, Double amount) {
         // Pay order with id 123, total 342.09 with card number 9999 from client X
-        return payOrder.using(card, Order.OrderId.of(orderId), Money.of(amount))
+        return payOrder.usingClientCard(card, Order.OrderId.of(orderId), Money.of(amount))
                 .flatMap(receipt -> {
                     var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK : HttpStatus.CREATED;
                     log.info("Order {} was paid using Reactive REST", orderId);
@@ -89,6 +86,7 @@ public class PaymentReactiveRESTController {
         );
     }
 
+    // TODO: Can be shared among REST controllers
     @Value
     private static class PaymentRequestDto {
         @NonNull Double amount;

@@ -29,10 +29,7 @@ public class PaymentAppUsingReactiveREST {
         PaymentReactiveRepository paymentRepository = new PaymentReactiveRepositoryMongo(dbClient, dbClient.getDatabase("payment_db"));
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrderReactive(paymentRepository);
-
-        // TODO: Remove repository from the controller
-        var restController = new PaymentReactiveRESTController(payOrder, paymentRepository);
+        var restController = new PaymentReactiveRESTController(new PayOrderReactive(paymentRepository));
 
         return new PaymentAppUsingReactiveREST(restController);
     }
@@ -43,9 +40,7 @@ public class PaymentAppUsingReactiveREST {
         var reactiveRepo = new PaymentReactiveRepositoryInMemory();
         reactiveRepo.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrderReactive(reactiveRepo);
-
-        var restController = new PaymentReactiveRESTController(payOrder, reactiveRepo);
+        var restController = new PaymentReactiveRESTController(new PayOrderReactive(reactiveRepo));
 
         return new PaymentAppUsingReactiveREST(restController);
     }

@@ -166,13 +166,5 @@ public class PaymentReactiveRepositoryMongo implements PaymentReactiveRepository
                         Money.of(doc.getDouble("amount")),
                         doc.getString("reference")))
                 .switchIfEmpty(Mono.error(new Card.CardError("Card was not found: " + doc.getObjectId("card_id").toString())));
-
-//        Card associatedCard = findCard((ObjectId) doc.get("card_id"))
-//                .orElseThrow(() -> new Card.CardError("Card was not found: " + doc.getString("card_id")));
-//
-//        return associatedCard.regenerateReceipt(doc.getString("_id"),
-//                ZonedDateTime.parse(doc.getString("time")),
-//                Money.of(doc.getDouble("amount")),
-//                doc.getString("reference"));
     }
 }

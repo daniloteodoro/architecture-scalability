@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class PaymentReactiveRepositoryInMemory implements PaymentReactiveRepository {
-    // TODO: Check these data types
     private final ConcurrentMap<ClientId, Card> clientSelectedCard = new ConcurrentHashMap<>();
     private final ConcurrentMap<String/*Card number*/, Card> cards = new ConcurrentHashMap<>();
     private final ConcurrentMap<String/*OrderId*/, Map<Double/*Amount*/, Card.Receipt>> receipts = new ConcurrentHashMap<>();

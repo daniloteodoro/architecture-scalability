@@ -35,8 +35,7 @@ public class PaymentControllerRESTIT {
         PaymentRepository paymentRepository = new PaymentRepositoryInMemory();
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrder(paymentRepository);
-        var RESTController = new PaymentRESTController(payOrder, paymentRepository);
+        var RESTController = new PaymentRESTController(new PayOrder(paymentRepository));
 
         app = new PaymentAppUsingREST(RESTController);
         app.startOnPort(DEFAULT_PORT);

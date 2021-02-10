@@ -27,8 +27,7 @@ public class PaymentAppUsingGRPC {
         var paymentRepository = new PaymentRepositoryMongo(dbClient, dbClient.getDatabase("payment_db"));
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrder(paymentRepository);
-        var gRPCController = new PaymentGRPCController(payOrder, paymentRepository);
+        var gRPCController = new PaymentGRPCController(new PayOrder(paymentRepository));
 
         return new PaymentAppUsingGRPC(gRPCController);
     }

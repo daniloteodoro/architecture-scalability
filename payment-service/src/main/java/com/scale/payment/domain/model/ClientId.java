@@ -11,4 +11,10 @@ public class ClientId {
         return value != null;
     }
 
+    public static class ClientNotFound extends PaymentError {
+        public ClientNotFound(String msg) {
+            super(msg);
+        }
+    }
+
 }

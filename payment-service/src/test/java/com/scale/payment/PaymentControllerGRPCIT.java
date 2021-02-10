@@ -29,8 +29,7 @@ public class PaymentControllerGRPCIT {
     static void setup() throws IOException, InterruptedException {
         paymentRepository.insertDefaultClientsWithCards();
 
-        var payOrder = new PayOrder(paymentRepository);
-        var gRPCController = new PaymentGRPCController(payOrder, paymentRepository);
+        var gRPCController = new PaymentGRPCController(new PayOrder(paymentRepository));
 
         new PaymentAppUsingGRPC(gRPCController)
                 .startOnPort(DEFAULT_PORT, false);

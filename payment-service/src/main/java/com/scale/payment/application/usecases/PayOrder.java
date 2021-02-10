@@ -2,6 +2,7 @@ package com.scale.payment.application.usecases;
 
 import com.scale.domain.Order;
 import com.scale.payment.domain.model.Card;
+import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import lombok.NonNull;
@@ -22,7 +23,10 @@ public class PayOrder {
      * @param card   The card to be debited.
      * @return The receipt of the payment operation.
      */
-    public Card.Receipt using(Card card, Order.OrderId id, Money amount) {
+    public Card.Receipt using(ClientId clientId, Order.OrderId id, Money amount) {
+        var card = paymentRepository.findCardByClient(clientId)
+                .orElseThrow(() -> new ClientId.ClientNotFound(String.format("Client %s was not found or has no associated card", clientId.getValue())));
+
         var possiblePayment = paymentRepository.findReceipt(id, amount);
         if (possiblePayment.isPresent()) {
             return new Card.OrderAlreadyPaidReceipt(possiblePayment.get());
