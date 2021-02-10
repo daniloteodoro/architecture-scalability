@@ -15,6 +15,7 @@
         <main-class>com.scale.payment.StartingPoint</main-class>
         <!--suppress UnresolvedMavenProperty => This variable should be set before using JIB - see README file-->
         <repository-base>${env.DOCKERHUB_USER}</repository-base>
+        <mongo-driver-version>4.2.0</mongo-driver-version>
     </properties>
 
     <dependencyManagement>
@@ -73,12 +74,18 @@
             <artifactId>domain</artifactId>
             <version>0.3</version>
         </dependency>
-        <!-- MongoDb -->
+        <!-- MongoDb (blocking and non-blocking drivers) -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.1.1</version>
+            <version>${mongo-driver-version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-reactivestreams</artifactId>
+            <version>${mongo-driver-version}</version>
+        </dependency>
+
         <!-- Used for testing -->
         <dependency>
             <groupId>com.konghq</groupId>

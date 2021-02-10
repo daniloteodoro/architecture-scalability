@@ -23,9 +23,9 @@ public class PaymentAppUsingREST {
 
     public static PaymentAppUsingREST defaultSetup() {
         log.info("Configuring app using MongoDb");
-        var dbConfig = new MongoConfig();
 
-        var paymentRepository = new PaymentRepositoryMongo(dbConfig.getClient(), dbConfig.getDatabase());
+        var dbClient = new MongoConfig().getBlockingClient();
+        var paymentRepository = new PaymentRepositoryMongo(dbClient, dbClient.getDatabase("payment_db"));
         paymentRepository.insertDefaultClientsWithCards();
 
         var payOrder = new PayOrder(paymentRepository);

@@ -1,44 +1,25 @@
 package com.scale.payment.infrastructure.configuration;
 
 import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
-
-// TODO: This class can be shared among modules
+// TODO: This class might be shared among modules
 public class MongoConfig {
+    private static final String DEFAULT_CS = "mongodb://paymentservice:ps89fsj&2#@127.0.0.1:27018/admin";
 
-    public MongoClient getClient() {
+    public com.mongodb.client.MongoClient getBlockingClient() {
         // Get values from config file
         ConnectionString connectionString =
-                new ConnectionString(System.getenv().getOrDefault("MONGOPAYMENT_CS", "mongodb://paymentservice:ps89fsj&2#@0.0.0.0:27018/admin"));
+                new ConnectionString(System.getenv().getOrDefault("MONGOPAYMENT_CS", DEFAULT_CS));
 
-        // TODO: Remove automatic POJO mappers
-        CodecRegistry pojoCodecRegistry = fromProviders(
-                PojoCodecProvider.builder()
-                        .automatic(true)
-                        .build()
-        );
-        CodecRegistry codecRegistry = fromRegistries(
-                MongoClientSettings.getDefaultCodecRegistry(),
-                pojoCodecRegistry);
-
-        MongoClientSettings clientSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .codecRegistry(codecRegistry)
-                .build();
-
-        return MongoClients.create(clientSettings);
+        return com.mongodb.client.MongoClients.create(connectionString);
     }
 
-    public MongoDatabase getDatabase() {
-        return getClient().getDatabase("payment_db");
+    public com.mongodb.reactivestreams.client.MongoClient getNonBlockingClient() {
+        // Get values from config file
+        ConnectionString connectionString =
+                new ConnectionString(System.getenv().getOrDefault("MONGOPAYMENT_CS", DEFAULT_CS));
+
+        return com.mongodb.reactivestreams.client.MongoClients.create(connectionString);
     }
 
 }

@@ -14,5 +14,5 @@ public interface PaymentReactiveRepository {
     Mono<Card> findCard(String number, Short digit, Card.ExpirationDate expireAt);
     Mono<Card> findCardByClient(ClientId clientId);
 
-    Mono<Void> insertDefaultClientsWithCards();
+    void insertDefaultClientsWithCards();
 }
