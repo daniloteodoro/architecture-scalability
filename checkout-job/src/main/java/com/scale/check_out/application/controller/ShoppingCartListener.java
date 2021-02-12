@@ -29,11 +29,10 @@ public class ShoppingCartListener {
 
     public void start() {
         if (consumeTag != null)
-            throw new CheckOutError("Listener is already started. Use method 'stop()' before re-starting.");
+            throw new CheckOutError("Listener has already been started. Use method 'stop()' before re-starting.");
         try {
-            // start listening
             channel.queueDeclare(SHOPPING_CART_QUEUE, true, false, false, Collections.emptyMap());
-            channel.basicConsume(SHOPPING_CART_QUEUE,
+            consumeTag = channel.basicConsume(SHOPPING_CART_QUEUE,
                     // Delivery callback
                     (s, delivery) -> {
                         try {

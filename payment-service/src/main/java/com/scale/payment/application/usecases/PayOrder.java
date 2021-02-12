@@ -18,9 +18,9 @@ public class PayOrder {
      * Check whether the given card has a positive balance - after subtracting the amount.
      * Then subtracts the amount from the card's balance and register the payment operation.
      * We assume all operations are in Euros - so no need for conversions.
-     * @param id     The order id to be associated with the payment
-     * @param amount The amount to be debited from the given card.
-     * @param card   The card to be debited.
+     * @param id        The order id to be associated with the payment
+     * @param amount    The amount to be debited from the given card.
+     * @param clientId  Client whose card will be debited.
      * @return The receipt of the payment operation.
      */
     public Card.Receipt using(ClientId clientId, Order.OrderId id, Money amount) {

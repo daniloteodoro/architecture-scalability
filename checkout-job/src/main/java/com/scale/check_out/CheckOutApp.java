@@ -3,14 +3,17 @@ package com.scale.check_out;
 import com.scale.check_out.application.controller.MetricsController;
 import com.scale.check_out.application.controller.ShoppingCartListener;
 import com.scale.check_out.application.usecases.PlaceOrder;
+import com.scale.check_out.application.usecases.PlaceOrderReactive;
 import com.scale.check_out.infrastructure.configuration.SerializerConfig;
 import com.scale.check_out.infrastructure.metrics.BusinessMetricsInMemory;
 import com.scale.check_out.infrastructure.order.OrderServiceChannelHandler;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingGRPC;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingREST;
+import com.scale.check_out.infrastructure.order.OrderServiceUsingReactiveREST;
 import com.scale.check_out.infrastructure.payment.PaymentServiceChannelHandler;
 import com.scale.check_out.infrastructure.payment.PaymentServiceUsingREST;
 import com.scale.check_out.infrastructure.payment.PaymentServiceUsingGRPC;
+import com.scale.check_out.infrastructure.payment.PaymentServiceUsingReactiveREST;
 import com.scale.check_out.infrastructure.queue.RabbitMQChannelHandler;
 import io.javalin.Javalin;
 import lombok.NonNull;
@@ -72,6 +75,31 @@ public class CheckOutApp {
         var placeOrder = new PlaceOrder(orderServiceREST, paymentServiceREST, orderServiceREST, inMemoryMetricsWatcher);
 
         var queueManager = new RabbitMQChannelHandler();
+        var shoppingCartListener = new ShoppingCartListener(queueManager.createChannel(), inMemoryMetricsWatcher, placeOrder);
+
+        return new CheckOutApp(metricsController, shoppingCartListener);
+    }
+
+    public static CheckOutApp setupReactiveREST() {
+        log.info("Setting up Check-out job using Reactive REST");
+
+        var inMemoryMetricsWatcher = new BusinessMetricsInMemory();
+        var metricsController = new MetricsController(inMemoryMetricsWatcher);
+
+//        SerializerConfig.initializeUniRestWithGson();
+        String orderApiHost = System.getenv().getOrDefault("ORDER_API_HOST", "127.0.0.1");
+        String paymentApiHost = System.getenv().getOrDefault("PAYMENT_API_HOST", "127.0.0.1");
+        log.info("Using order-api host: {}", orderApiHost);
+        log.info("Using payment-api host: {}", paymentApiHost);
+
+        var orderServiceReactiveREST = new OrderServiceUsingReactiveREST(orderApiHost, 8000);
+        var paymentServiceReactiveREST = new PaymentServiceUsingReactiveREST(paymentApiHost, 8100);
+        var placeOrder = new PlaceOrderReactive(orderServiceReactiveREST, paymentServiceReactiveREST, orderServiceReactiveREST, inMemoryMetricsWatcher);
+
+        var queueManager = new RabbitMQChannelHandler();
+
+        https://projectreactor.io/docs/rabbitmq/snapshot/reference/  3. Getting Started
+
         var shoppingCartListener = new ShoppingCartListener(queueManager.createChannel(), inMemoryMetricsWatcher, placeOrder);
 
         return new CheckOutApp(metricsController, shoppingCartListener);

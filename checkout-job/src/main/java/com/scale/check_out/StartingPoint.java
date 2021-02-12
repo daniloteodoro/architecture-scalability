@@ -4,10 +4,13 @@ public class StartingPoint {
 
     public static void main(String[] args) {
         try {
-            String protocol = System.getenv().getOrDefault("PROTOCOL", "REST");
+            String protocol = System.getenv().getOrDefault("PROTOCOL", "REACTIVE");
             int paramPort = args.length > 0 ? Integer.parseInt(args[0]) : 7000;
 
-            if ("REST".equalsIgnoreCase(protocol)) {
+            if ("REACTIVE".equalsIgnoreCase(protocol)) {
+                CheckOutApp.setupReactiveREST()
+                        .startOnPort(paramPort);
+            } else if ("REST".equalsIgnoreCase(protocol)) {
                 CheckOutApp.setupREST()
                         .startOnPort(paramPort);
             } else {
@@ -16,7 +19,7 @@ public class StartingPoint {
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);
-            System.exit(2);
+            System.exit(1);
         }
     }
 

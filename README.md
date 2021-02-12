@@ -1,10 +1,11 @@
 # architecture_scalability
 
 Main purpose of this project is to show in numbers how the architectural choice and deployment affect performance and scalability in a distributed system.
-REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for higher throughput and low latency.
+REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for high throughput and low latency.<br>
+I decided to build this project to further learn on these topics, and have a solid foundation to compare when future optimizations are used.
 
 ### The idea
-I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment setups. 
+I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment setups.<br> 
 
 ![Dashboard in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/scalability_dashboard_730tps.png?raw=true)
 

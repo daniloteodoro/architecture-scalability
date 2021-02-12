@@ -16,7 +16,7 @@ public class StartingPoint {
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);
-            System.exit(-1);
+            System.exit(1);
         }
     }
 
