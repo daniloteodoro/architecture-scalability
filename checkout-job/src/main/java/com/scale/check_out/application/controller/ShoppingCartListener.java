@@ -10,6 +10,7 @@ import com.scale.domain.ShoppingCart;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,7 @@ import java.util.Collections;
 
 @RequiredArgsConstructor
 @Slf4j
-public class ShoppingCartListener {
+public class ShoppingCartListener implements QueueConsumer {
     private final static String SHOPPING_CART_QUEUE = "shoppingcart.queue";
 
     private final Gson gson = SerializerConfig.buildSerializer();
@@ -27,7 +28,8 @@ public class ShoppingCartListener {
     @NonNull BusinessMetrics metrics;
     @NonNull PlaceOrder placeOrder;
 
-    public void start() {
+    @Override
+    public Flux<Void> start() {
         if (consumeTag != null)
             throw new CheckOutError("Listener has already been started. Use method 'stop()' before re-starting.");
         try {
@@ -56,8 +58,10 @@ public class ShoppingCartListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
+    @Override
     public void stop() {
         try {
             channel.basicCancel(consumeTag);

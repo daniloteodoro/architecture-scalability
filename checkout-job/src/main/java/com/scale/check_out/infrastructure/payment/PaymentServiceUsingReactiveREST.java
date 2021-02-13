@@ -41,8 +41,8 @@ public class PaymentServiceUsingReactiveREST implements PayOrderReactive {
                 .responseSingle((httpClientResponse, byteBufMono) -> {
                     if (httpClientResponse.status() != HttpResponseStatus.CREATED && httpClientResponse.status() != HttpResponseStatus.OK)
                         return Mono.error(new CannotCreateOrder(String.format("Error %d paying order", httpClientResponse.status().code())));
-                    else
-                        return byteBufMono.asString();
+
+                    return byteBufMono.asString();
                 })
                 .map(result -> gson.fromJson(result, PaymentDto.PaymentReceiptDto.class));
     }
