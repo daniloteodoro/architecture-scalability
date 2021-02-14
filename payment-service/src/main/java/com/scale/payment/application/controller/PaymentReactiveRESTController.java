@@ -64,9 +64,9 @@ public class PaymentReactiveRESTController {
                     var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK : HttpStatus.CREATED;
                     log.info("Order {} was paid using Reactive REST", orderId);
                     return Mono.from(response.status(status)
-                                    .header("location", "/receipts/" + receipt.getNumber())
-                                    .header("Content-Type", "application/json")
-                                    .sendString(Mono.just(gson.toJson(PaymentReceiptDto.from(receipt)))));
+                            .header("location", "/receipts/" + receipt.getNumber())
+                            .header("Content-Type", "application/json")
+                            .sendString(Mono.just(gson.toJson(PaymentReceiptDto.from(receipt)))));
                 })
                 .onErrorResume(e -> {
                     e.printStackTrace();
@@ -81,9 +81,15 @@ public class PaymentReactiveRESTController {
 
     // REST-related methods
     private Flux<PaymentRequestDto> getPaymentRequestFromPayload(Flux<String> payload) {
-        return payload.flatMap(content ->
-                Mono.just(gson.fromJson(content, PaymentRequestDto.class))
-        );
+        return payload.map(content -> {
+            try {
+                log.info(content);
+                return gson.fromJson(content, PaymentRequestDto.class);
+            } catch (Exception e) {
+                log.error("Json parsing failure.\n" + content);
+                throw e;
+            }
+        });
     }
 
     // TODO: Can be shared among REST controllers

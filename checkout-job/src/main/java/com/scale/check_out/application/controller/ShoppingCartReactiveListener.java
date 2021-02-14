@@ -11,7 +11,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import reactor.rabbitmq.ConsumeOptions;
 
 import java.nio.charset.StandardCharsets;
 
@@ -32,23 +34,33 @@ public class ShoppingCartReactiveListener implements QueueConsumer {
         if (consumeTag != null)
             throw new CheckOutError("Listener has already been started. Use method 'stop()' before re-starting.");
 
-        queueManager.declareQueueNonBlocking(SHOPPING_CART_QUEUE)
-                .subscribe();
+        ConsumeOptions options = new ConsumeOptions()
+                .overflowStrategy(FluxSink.OverflowStrategy.BUFFER)
+                .qos(10);
 
         return queueManager.createNonBlockingReceiver()
-                .consumeAutoAck(SHOPPING_CART_QUEUE)
+                .consumeManualAck(SHOPPING_CART_QUEUE)
+                .delaySubscription(queueManager.declareQueueNonBlocking(SHOPPING_CART_QUEUE))
+//                .limitRate(10)
+//                .onBackpressureBuffer(256, delivery -> log.warn("\tAttention: Overflow happened! "), BufferOverflowStrategy.DROP_LATEST)
                 .flatMap(delivery -> {
                     try {
                         String content = new String(delivery.getBody(), StandardCharsets.UTF_8);
                         var shoppingCart = gson.fromJson(content, ShoppingCart.class);
                         metrics.newShoppingCartStarted(shoppingCart.getSessionId(), shoppingCart.getNumberOfClientsOnSameSession());
-                        return placeOrder.basedOn(shoppingCart);
+                        return placeOrder.basedOn(shoppingCart)
+                                .onErrorResume(throwable -> {
+                                    log.error("Some error on 'PlaceOrder' occurred for session {}: {}", shoppingCart.getSessionId(), throwable.getMessage());
+                                    return Mono.empty();
+                                })
+                                .doFinally(signalType -> {
+                                    delivery.ack();
+                                });
                     } catch (Exception e) {
                         e.printStackTrace();
                         return Mono.empty();
                     }
-                })
-                .onErrorResume(throwable -> Mono.empty());
+                });
     }
 
     @Override

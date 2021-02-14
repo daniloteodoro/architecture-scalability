@@ -73,6 +73,7 @@ public class RabbitMQChannelHandler {
     }
 
     public Sender createNonBlockingSender() {
+        // TODO: Close the sender
         SenderOptions senderOptions =  new SenderOptions()
                 .connectionFactory(nonBlockingConnectionFactory)
                 .resourceManagementScheduler(Schedulers.boundedElastic());
@@ -81,6 +82,7 @@ public class RabbitMQChannelHandler {
     }
 
     public Receiver createNonBlockingReceiver() {
+        // TODO: Close the receiver
         log.info("Using queue url: {}:{} (non-blocking)", nonBlockingConnectionFactory.getHost(), nonBlockingConnectionFactory.getPort());
         ReceiverOptions receiverOptions =  new ReceiverOptions()
                 .connectionFactory(nonBlockingConnectionFactory)

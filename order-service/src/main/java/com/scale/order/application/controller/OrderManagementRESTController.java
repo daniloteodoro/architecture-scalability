@@ -1,6 +1,7 @@
 package com.scale.order.application.controller;
 
 import com.google.gson.Gson;
+import com.scale.domain.DomainError;
 import com.scale.domain.Order;
 import com.scale.domain.ShoppingCart;
 import com.scale.order.application.usecases.ConfirmOrder;
@@ -71,7 +72,19 @@ public class OrderManagementRESTController {
             return;
         }
 
-        confirmOrder.withPaymentReceipt(Order.OrderId.of(orderId), receiptNumber);
+        try {
+            confirmOrder.withPaymentReceipt(Order.OrderId.of(orderId), receiptNumber);
+        } catch (DomainError e) {
+            e.printStackTrace();
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result(e.getMessage());
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            context.status(HttpStatus.INTERNAL_SERVER_ERROR_500)
+                    .result("Unknown error while confirming order " + orderId);
+            return;
+        }
 
         log.info("Order {} was confirmed using REST", orderId);
         context.status(HttpStatus.NO_CONTENT_204);
