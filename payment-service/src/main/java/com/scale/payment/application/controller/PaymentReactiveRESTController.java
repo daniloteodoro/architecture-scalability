@@ -8,7 +8,7 @@ import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.model.PaymentError;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
-import kong.unirest.HttpStatus;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -31,29 +31,29 @@ public class PaymentReactiveRESTController {
     public Publisher<Void> handlePayment(HttpServerRequest request, HttpServerResponse response) {
         return getPaymentRequestFromPayload(request.receive().asString())
                 .flatMap(paymentRequest -> validateAndPay(response, paymentRequest))
-                .switchIfEmpty(response.status(HttpStatus.BAD_REQUEST));
+                .switchIfEmpty(response.status(HttpResponseStatus.BAD_REQUEST));
     }
 
     private Publisher<Void> validateAndPay(HttpServerResponse response, PaymentRequestDto requestDto) {
         if (requestDto == null || !requestDto.isValid()) {
-            return response.status(HttpStatus.BAD_REQUEST)
+            return response.status(HttpResponseStatus.BAD_REQUEST)
                     .sendString(Mono.just("Payload containing the full payment request is mandatory").log());
         }
         if (requestDto.getOrderId().isBlank()) {
-            return response.status(HttpStatus.BAD_REQUEST)
+            return response.status(HttpResponseStatus.BAD_REQUEST)
                     .sendString(Mono.just("Order id is mandatory").log());
         }
         if (requestDto.getAmount() <= 0d) {
-            return response.status(HttpStatus.BAD_REQUEST)
+            return response.status(HttpResponseStatus.BAD_REQUEST)
                     .sendString(Mono.just("Amount must be greater than zero").log());
         }
         if (!requestDto.getClientId().isValid()) {
-            return response.status(HttpStatus.BAD_REQUEST)
+            return response.status(HttpResponseStatus.BAD_REQUEST)
                     .sendString(Mono.just("Client id is mandatory").log());
         }
 
         return pay(response, requestDto.clientId, requestDto.orderId, requestDto.amount)
-                .switchIfEmpty(Mono.from(response.status(HttpStatus.NOT_FOUND).
+                .switchIfEmpty(Mono.from(response.status(HttpResponseStatus.NOT_FOUND).
                         sendString(Mono.just(String.format("Client %s was not found or has no associated card", requestDto.clientId.getValue())))));
     }
 
@@ -61,7 +61,7 @@ public class PaymentReactiveRESTController {
         // Pay order with id 123, total 342.09 with card number 9999 from client X
         return payOrder.usingClientCard(card, Order.OrderId.of(orderId), Money.of(amount))
                 .flatMap(receipt -> {
-                    var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpStatus.OK : HttpStatus.CREATED;
+                    var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpResponseStatus.OK : HttpResponseStatus.CREATED;
                     log.info("Order {} was paid using Reactive REST", orderId);
                     return Mono.from(response.status(status)
                             .header("location", "/receipts/" + receipt.getNumber())
@@ -71,10 +71,10 @@ public class PaymentReactiveRESTController {
                 .onErrorResume(e -> {
                     e.printStackTrace();
                     if (e instanceof PaymentError)
-                        return Mono.from(response.status(HttpStatus.PAYMENT_REQUIRED)
+                        return Mono.from(response.status(HttpResponseStatus.PAYMENT_REQUIRED)
                                 .sendString(Mono.just(e.getMessage()).log()));
                     else
-                        return Mono.from(response.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        return Mono.from(response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR)
                                 .sendString(Mono.just("Failure processing payment").log()));
                 });
     }

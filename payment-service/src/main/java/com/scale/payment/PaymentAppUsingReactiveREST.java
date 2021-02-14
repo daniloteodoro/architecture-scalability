@@ -26,7 +26,7 @@ public class PaymentAppUsingReactiveREST {
         log.info("Configuring Reactive app using MongoDb");
 
         var dbClient = new MongoConfig().getNonBlockingClient();
-        PaymentReactiveRepository paymentRepository = new PaymentReactiveRepositoryMongo(dbClient, dbClient.getDatabase("payment_db"));
+        PaymentReactiveRepository paymentRepository = new PaymentReactiveRepositoryMongo(dbClient.getDatabase("payment_db"));
         paymentRepository.insertDefaultClientsWithCards();
 
         var restController = new PaymentReactiveRESTController(new PayOrderReactive(paymentRepository));

@@ -6,7 +6,6 @@ import com.mongodb.TransactionOptions;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import com.scale.domain.Order;
@@ -40,29 +39,14 @@ public class PaymentReactiveRepositoryMongo implements PaymentReactiveRepository
             .writeConcern(WriteConcern.MAJORITY)
             .build();
 
-    private final @NonNull MongoDatabase db;
-    private final @NonNull MongoClient mongoClient;
     private final @NonNull MongoCollection<Document> clients;
     private final @NonNull MongoCollection<Document> cards;
     private final @NonNull MongoCollection<Document> receipts;
 
-    public PaymentReactiveRepositoryMongo(@NonNull MongoClient mongoClient, @NonNull MongoDatabase db) {
-        this.mongoClient = mongoClient;
-        this.db = db;
+    public PaymentReactiveRepositoryMongo(@NonNull MongoDatabase db) {
         this.cards = db.getCollection("cards");
         this.receipts = db.getCollection("receipts");
         this.clients = db.getCollection("clients");
-    }
-
-    private Bson findReceiptInMongo(Order.OrderId id, Money amount) {
-        return and(eq("reference", id.value()),
-                eq("amount", amount.getValue().doubleValue()));
-    }
-
-    private Bson findCardInMongo(String number, Short digit, Card.ExpirationDate expirationDate) {
-        return and(eq("_id", new ObjectId(number)),
-                eq("digit", digit),
-                eq("expiration_date", expirationDate.getValue()));
     }
 
     @Override
@@ -113,6 +97,17 @@ public class PaymentReactiveRepositoryMongo implements PaymentReactiveRepository
             )
             .log()
             .subscribe();
+    }
+
+    private Bson findReceiptInMongo(Order.OrderId id, Money amount) {
+        return and(eq("reference", id.value()),
+                eq("amount", amount.getValue().doubleValue()));
+    }
+
+    private Bson findCardInMongo(String number, Short digit, Card.ExpirationDate expirationDate) {
+        return and(eq("_id", new ObjectId(number)),
+                eq("digit", digit),
+                eq("expiration_date", expirationDate.getValue()));
     }
 
     private Publisher<UpdateResult> upsertCard(String number, Short digit, String expirationDate, Double limit) {

@@ -23,9 +23,9 @@ public class OrderAppUsingGRPC {
     private Server server;
 
     public static OrderAppUsingGRPC defaultSetup() {
-        var dbConfig = new MongoConfig();
+        var dbClient = new MongoConfig().getBlockingClient();
 
-        var orderRepository = new OrderRepositoryMongo(dbConfig.getDatabase());
+        var orderRepository = new OrderRepositoryMongo(dbClient.getDatabase("order_db"));
         var generateOrder = new GenerateOrder(orderRepository);
         var updateOrder = new UpdateOrder(orderRepository);
         var confirmOrder = new ConfirmOrder(orderRepository);

@@ -4,10 +4,10 @@ public class StartingPoint {
 
     public static void main(String[] args) {
         try {
-            String protocol = System.getenv().getOrDefault("PROTOCOL", "REACTIVE");
+            String protocol = System.getenv().getOrDefault("PROTOCOL", "REACTIVE_REST");
             int paramPort = args.length > 0 ? Integer.parseInt(args[0]) : 8100;
 
-            if ("REACTIVE".equalsIgnoreCase(protocol)) {
+            if ("REACTIVE_REST".equalsIgnoreCase(protocol)) {
                 PaymentAppUsingReactiveREST.defaultSetup()
                         .startOnPort(paramPort);
             } else if ("REST".equalsIgnoreCase(protocol)) {
