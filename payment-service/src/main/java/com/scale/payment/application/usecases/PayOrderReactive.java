@@ -26,7 +26,8 @@ public class PayOrderReactive {
      */
     public Mono<Card.Receipt> usingClientCard(ClientId clientId, Order.OrderId id, Money amount) {
         return paymentRepository.findCardByClient(clientId)
-                .flatMap(card -> payWithCard(card, id, amount));
+                .flatMap(card -> payWithCard(card, id, amount))
+                .switchIfEmpty(Mono.error(new ClientId.ClientNotFound(String.format("Client %s was not found or has no associated card", clientId))));
     }
 
     private Mono<Card.Receipt> payWithCard(Card card, Order.OrderId id, Money amount) {

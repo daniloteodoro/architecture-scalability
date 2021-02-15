@@ -74,7 +74,7 @@ Enable the http module and log and configure it like in `/metricbeat/http.yml`
 Build the projects <br>
 ./architecture_scalability$ `mvn clean install`
 
-Then start the docker files inside directories `checkout-job/docker` and `elk`, and run each service, although the easier way is using the convenience script below: <br>
+Then start the docker files inside directories `checkout-job/docker`, `payment-service/docker`, `order-service/docker` and `elk`, and run each service, although the easiest way is using the convenience script below: <br>
 `./architecture_scalability$ ./deployment/local_deploy.sh`
 
 After around 1 minute the services should be ready - just be aware that fist run will take much longer, as Docker has to pull all images for RabbitMq, MongoDb, ELK, etc. 

@@ -82,7 +82,7 @@ public class PaymentReactiveRepositoryMongo implements PaymentReactiveRepository
     public Mono<Card> findCardByClient(ClientId clientId) {
         return Mono.from(clients.find(eq("_id", new ObjectId(clientId.getValue()))))
                 .filter(Objects::nonNull)
-                .flatMap(clientDoc -> findCard((ObjectId) clientDoc.get("card_id")));
+                .flatMap(clientDoc -> findCard(clientDoc.getObjectId("card_id")));
     }
 
     @Override

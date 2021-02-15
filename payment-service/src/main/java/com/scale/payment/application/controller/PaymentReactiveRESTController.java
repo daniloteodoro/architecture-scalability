@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
@@ -29,40 +28,11 @@ public class PaymentReactiveRESTController {
     private final Gson gson = SerializerConfig.buildSerializer();
 
     public Publisher<Void> handlePayment(HttpServerRequest request, HttpServerResponse response) {
-        return getPaymentRequestFromPayload(request.receive().asString())
-                .flatMap(paymentRequest -> validateAndPay(response, paymentRequest))
-                .switchIfEmpty(response.status(HttpResponseStatus.BAD_REQUEST));
-    }
-
-    private Publisher<Void> validateAndPay(HttpServerResponse response, PaymentRequestDto requestDto) {
-        if (requestDto == null || !requestDto.isValid()) {
-            return response.status(HttpResponseStatus.BAD_REQUEST)
-                    .sendString(Mono.just("Payload containing the full payment request is mandatory").log());
-        }
-        if (requestDto.getOrderId().isBlank()) {
-            return response.status(HttpResponseStatus.BAD_REQUEST)
-                    .sendString(Mono.just("Order id is mandatory").log());
-        }
-        if (requestDto.getAmount() <= 0d) {
-            return response.status(HttpResponseStatus.BAD_REQUEST)
-                    .sendString(Mono.just("Amount must be greater than zero").log());
-        }
-        if (!requestDto.getClientId().isValid()) {
-            return response.status(HttpResponseStatus.BAD_REQUEST)
-                    .sendString(Mono.just("Client id is mandatory").log());
-        }
-
-        return pay(response, requestDto.clientId, requestDto.orderId, requestDto.amount)
-                .switchIfEmpty(Mono.from(response.status(HttpResponseStatus.NOT_FOUND).
-                        sendString(Mono.just(String.format("Client %s was not found or has no associated card", requestDto.clientId.getValue())))));
-    }
-
-    private Mono<Void> pay(HttpServerResponse response, ClientId card, String orderId, Double amount) {
-        // Pay order with id 123, total 342.09 with card number 9999 from client X
-        return payOrder.usingClientCard(card, Order.OrderId.of(orderId), Money.of(amount))
+        return getPaymentRequestFromPayload(request.receive().aggregate().asString())
+                .flatMap(this::validateAndPay)
                 .flatMap(receipt -> {
                     var status = (receipt instanceof Card.OrderAlreadyPaidReceipt) ? HttpResponseStatus.OK : HttpResponseStatus.CREATED;
-                    log.info("Order {} was paid using Reactive REST", orderId);
+                    log.info("Order {} was paid using Reactive REST", receipt.getReference());
                     return Mono.from(response.status(status)
                             .header("location", "/receipts/" + receipt.getNumber())
                             .header("Content-Type", "application/json")
@@ -70,8 +40,11 @@ public class PaymentReactiveRESTController {
                 })
                 .onErrorResume(e -> {
                     e.printStackTrace();
-                    if (e instanceof PaymentError)
+                    if (e instanceof Card.CardError)
                         return Mono.from(response.status(HttpResponseStatus.PAYMENT_REQUIRED)
+                                .sendString(Mono.just(e.getMessage()).log()));
+                    else if (e instanceof PaymentError)
+                        return Mono.from(response.status(HttpResponseStatus.BAD_REQUEST)
                                 .sendString(Mono.just(e.getMessage()).log()));
                     else
                         return Mono.from(response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR)
@@ -79,17 +52,33 @@ public class PaymentReactiveRESTController {
                 });
     }
 
+    private Mono<Card.Receipt> validateAndPay(PaymentRequestDto requestDto) {
+        if (requestDto == null || !requestDto.isValid())
+            return Mono.error(new PaymentError("Payload containing the full payment request is mandatory"));
+        if (requestDto.getOrderId().isBlank())
+            return Mono.error(new PaymentError("Order id is mandatory"));
+        if (requestDto.getAmount() <= 0d)
+            return Mono.error(new PaymentError("Amount must be greater than zero"));
+        if (!requestDto.getClientId().isValid())
+            return Mono.error(new PaymentError("Client id is mandatory"));
+
+        return payOrder.usingClientCard(requestDto.clientId, Order.OrderId.of(requestDto.orderId), Money.of(requestDto.amount));
+    }
+
     // REST-related methods
-    private Flux<PaymentRequestDto> getPaymentRequestFromPayload(Flux<String> payload) {
-        return payload.map(content -> {
+    private Mono<PaymentRequestDto> getPaymentRequestFromPayload(Mono<String> payload) {
+        return payload.flatMap(content -> {
             try {
-                log.info(content);
-                return gson.fromJson(content, PaymentRequestDto.class);
+                if (content.isBlank())
+                    return Mono.error(new PaymentError("Payment request is mandatory"));
+
+                return Mono.just(gson.fromJson(content, PaymentRequestDto.class));
             } catch (Exception e) {
                 log.error("Json parsing failure.\n" + content);
-                throw e;
+                return Mono.error(e);
             }
-        });
+        })
+        .switchIfEmpty(Mono.error(new PaymentError("Payment request is mandatory")));
     }
 
     // TODO: Can be shared among REST controllers

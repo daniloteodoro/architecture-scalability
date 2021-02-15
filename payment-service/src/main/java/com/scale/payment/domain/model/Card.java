@@ -126,10 +126,4 @@ public class Card {
         }
     }
 
-    public static class ReceiptError extends PaymentError {
-        public ReceiptError(String msg) {
-            super(msg);
-        }
-    }
-
 }
