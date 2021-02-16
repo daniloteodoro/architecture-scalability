@@ -48,10 +48,10 @@ public class PaymentControllerRESTIT {
 
     // 16.650  in 10s (single threaded) /   56.434  in 10s (100 threads)
     // 118.008 in 30s                   /   315.720 in 30s (100 threads)
-    // 267.568 in 60s    (4.4k/s)
+    // 267.568 in 60s    (4.4k/s)       /   710.197 in 60s (100 threads)
     @Test
     public void loadTest() throws InterruptedException {
-        int WAIT_TIME_IN_SECONDS = 30;
+        int WAIT_TIME_IN_SECONDS = 1;
         long start = System.currentTimeMillis();
         AtomicLong counter = new AtomicLong(0);
         Runnable generatePayments = () -> {

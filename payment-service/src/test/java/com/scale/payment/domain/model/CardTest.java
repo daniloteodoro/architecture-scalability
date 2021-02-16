@@ -32,7 +32,7 @@ public class CardTest {
 
     @Test
     public void givenAValidExpirationDateTheObjectIsCreatedCorrectly() {
-        new Card.ExpirationDate("10/2030").asDate().isEqual(LocalDate.of(2030, 10, 31));
+        assertTrue(new Card.ExpirationDate("10/2030").asDate().isEqual(LocalDate.of(2030, 10, 31)));
     }
 
     @Test

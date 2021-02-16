@@ -45,7 +45,7 @@ public class PaymentAppUsingReactiveREST {
         return new PaymentAppUsingReactiveREST(restController);
     }
 
-    public void startOnPort(int port) {
+    public void startOnPort(int port, boolean awaitTermination) {
         app = HttpServer.create()
                 .port(port)
                 .route(routes ->
@@ -54,8 +54,9 @@ public class PaymentAppUsingReactiveREST {
 
         log.info("Reactive REST Server started in {}ms, listening on port {}", (System.currentTimeMillis() - startTime), port);
 
-        app.onDispose()
-                .block();
+        if (awaitTermination)
+            app.onDispose()
+                    .block();
     }
 
     public void stop() {

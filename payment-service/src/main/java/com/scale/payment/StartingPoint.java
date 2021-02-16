@@ -9,7 +9,7 @@ public class StartingPoint {
 
             if ("REACTIVE_REST".equalsIgnoreCase(protocol)) {
                 PaymentAppUsingReactiveREST.defaultSetup()
-                        .startOnPort(paramPort);
+                        .startOnPort(paramPort, true);
             } else if ("REST".equalsIgnoreCase(protocol)) {
                 PaymentAppUsingREST.defaultSetup()
                         .startOnPort(paramPort);

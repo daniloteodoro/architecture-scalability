@@ -63,9 +63,11 @@ public class PaymentReactiveRepositoryInMemory implements PaymentReactiveReposit
         cards.put("5ff67f73deff4f00079b7f84", new Card("5ff67f73deff4f00079b7f84", (short)333, new Card.ExpirationDate("10/2025"), Money.of(1_000_000_000.0)));
         cards.put("5ff873c1e77e950006a814af", new Card("5ff873c1e77e950006a814af", (short)444, new Card.ExpirationDate("01/2026"), Money.of(1_500_000_000.0)));
         cards.put("5ff873cae77e950006a814b1", new Card("5ff873cae77e950006a814b1", (short)555, new Card.ExpirationDate("08/2027"), Money.of(1_800_000_000.0)));
+        cards.put("expired_card", new Card("expired_card", (short)555, new Card.ExpirationDate("08/2020"), Money.of(1_000.0)));
 
         clientSelectedCard.put(new ClientId("5ff867a5e77e950006a814ad"), cards.get("5ff67f73deff4f00079b7f84"));
         clientSelectedCard.put(new ClientId("5ff878f5e77e950006a814b3"), cards.get("5ff873c1e77e950006a814af"));
         clientSelectedCard.put(new ClientId("5ff87909e77e950006a814b5"), cards.get("5ff873cae77e950006a814b1"));
+        clientSelectedCard.put(new ClientId("client_with_card_expired"), cards.get("expired_card"));
     }
 }
