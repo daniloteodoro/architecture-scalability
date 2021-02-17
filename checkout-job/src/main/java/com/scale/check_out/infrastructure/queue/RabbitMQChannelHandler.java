@@ -50,9 +50,7 @@ public class RabbitMQChannelHandler {
     public Channel createChannel() {
         try {
             log.info("Using queue url: {}:{} (blocking)", blockingConnectionFactory.getHost(), blockingConnectionFactory.getPort());
-            var channel = getConnection(blockingConnectionFactory).createChannel();
-            channel.basicQos(10, true);
-            return channel;
+            return getConnection(blockingConnectionFactory).createChannel();
         } catch (Exception e) {
             e.printStackTrace();
             throw new CheckOutError("Failure configuring the queue channel");

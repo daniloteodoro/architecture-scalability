@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 @Slf4j
-public class ShoppingCartReactiveListener implements QueueConsumer {
+public class ShoppingCartReactiveListener implements ReactiveQueueConsumer {
     private final static String SHOPPING_CART_QUEUE = "shoppingcart.queue";
 
     @NonNull RabbitMQChannelHandler queueManager;
@@ -36,10 +36,10 @@ public class ShoppingCartReactiveListener implements QueueConsumer {
 
         ConsumeOptions options = new ConsumeOptions()
                 .overflowStrategy(FluxSink.OverflowStrategy.BUFFER)
-                .qos(10);
+                .qos(100);
 
         return queueManager.createNonBlockingReceiver()
-                .consumeManualAck(SHOPPING_CART_QUEUE)
+                .consumeManualAck(SHOPPING_CART_QUEUE, options)
                 .delaySubscription(queueManager.declareQueueNonBlocking(SHOPPING_CART_QUEUE))
 //                .limitRate(10)
 //                .onBackpressureBuffer(256, delivery -> log.warn("\tAttention: Overflow happened! "), BufferOverflowStrategy.DROP_LATEST)
