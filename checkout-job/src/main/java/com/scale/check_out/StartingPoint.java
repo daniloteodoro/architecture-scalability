@@ -4,7 +4,7 @@ public class StartingPoint {
 
     public static void main(String[] args) {
         try {
-            String protocol = System.getenv().getOrDefault("PROTOCOL", "REST");
+            String protocol = System.getenv().getOrDefault("PROTOCOL", "REACTIVE_REST");
             int paramPort = args.length > 0 ? Integer.parseInt(args[0]) : 7000;
 
             if ("REACTIVE_REST".equalsIgnoreCase(protocol)) {

@@ -116,6 +116,6 @@ After that, create a new Record and fill in the section "Value/Route traffic to"
 
 You now should be able to reach your deployment using your custom domain, and the ingress controller will continue redirecting to services as usual:
 
-Example using the test domain _scale-order.tk_ with the new record called "apps" <br>
-* Kibana: http://apps.scale-order.tk/
-* Management API: http://apps.scale-order.tk/shopping-cart/samples/10
+Example using the test domain _my-domain.tk_ with the new record called "apps" <br>
+* Kibana: http://apps.my-domain.tk/
+* Management API: http://apps.my-domain.tk/shopping-cart/samples/10
