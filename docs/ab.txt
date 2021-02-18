@@ -1,0 +1,145 @@
+Install Apache Bench (ab) with: sudo apt-get install apache2-utils
+File `sample1.txt` contains:
+{
+  "amount":11.99,
+  "orderId":"ABC123",
+  "clientId": {
+      "value": "5ff867a5e77e950006a814ad"
+  }
+}
+
+
+
+
+ab -n 100000 -c 1 -T application/json -p sample1.txt http://localhost:8100/payments
+
+Time taken for tests:   15.878 seconds
+Requests per second:    6297.97 [#/sec] (mean)
+Time per request:       0.159 [ms] (mean)
+Time per request:       0.159 [ms] (mean, across all concurrent requests)
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0       0
+Processing:     0    0   0.2      0      15
+Waiting:        0    0   0.2      0      15
+Total:          0    0   0.2      0      15
+
+Percentage of the requests served within a certain time (ms)
+  50%      0
+  66%      0
+  75%      0
+  80%      0
+  90%      0
+  95%      0
+  98%      0
+  99%      0
+ 100%     15 (longest request)
+
+
+
+ab -n 100000 -c 10 -T application/json -p sample1.txt http://localhost:8100/payments
+Time taken for tests:   7.151 seconds
+Requests per second:    13984.38 [#/sec] (mean)
+Time per request:       0.715 [ms] (mean)
+Time per request:       0.072 [ms] (mean, across all concurrent requests)
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       6
+Processing:     0    1   0.7      0      16
+Waiting:        0    0   0.6      0      16
+Total:          0    1   0.6      1      17
+WARNING: The median and mean for the processing time are not within a normal deviation
+        These results are probably not that reliable.
+
+Percentage of the requests served within a certain time (ms)
+  50%      1
+  66%      1
+  75%      1
+  80%      1
+  90%      1
+  95%      1
+  98%      1
+  99%      3
+ 100%     17 (longest request)
+
+
+
+
+ab -n 100000 -c 100 -T application/json -p sample1.txt http://localhost:8100/payments
+Time taken for tests:   6.255 seconds
+Requests per second:    15986.14 [#/sec] (mean)
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    4  54.9      1    1026
+Processing:     0    2   1.3      2      21
+Waiting:        0    2   1.3      2      20
+Total:          1    6  55.0      3    1029
+
+Percentage of the requests served within a certain time (ms)
+  50%      3
+  66%      3
+  75%      3
+  80%      3
+  90%      4
+  95%      4
+  98%      6
+  99%     10
+ 100%   1029 (longest request)
+
+
+
+
+ab -n 100000 -c 1000 -T application/json -p sample1.txt http://localhost:8100/payments
+Time taken for tests:   6.868 seconds
+Requests per second:    14560.97 [#/sec] (mean)
+Time per request:       68.677 [ms] (mean)
+Time per request:       0.069 [ms] (mean, across all concurrent requests)
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   51 235.8      1    3045
+Processing:     0    8  47.9      2    1672
+Waiting:        0    6  47.7      2    1670
+Total:          0   59 251.7      3    3053
+
+Percentage of the requests served within a certain time (ms)
+  50%      3
+  66%      4
+  75%      6
+  80%      8
+  90%     43
+  95%     63
+  98%   1027
+  99%   1042
+ 100%   3053 (longest request)
+
+
+
+
+
+    *** Had to run command to solve error "socket: Too many open files (24) apache bench": ulimit -n 2048
+ab -n 100000 -c 2000 -T application/json -p sample1.txt http://localhost:8100/payments
+
+Time taken for tests:   6.978 seconds
+Requests per second:    14330.11 [#/sec] (mean)
+Time per request:       139.566 [ms] (mean)
+Time per request:       0.070 [ms] (mean, across all concurrent requests)
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0  105 316.3      2    3051
+Processing:     0   17  84.2      3    3325
+Waiting:        0   15  83.8      2    3324
+Total:          0  121 356.3      6    4715
+
+Percentage of the requests served within a certain time (ms)
+  50%      6
+  66%      9
+  75%     12
+  80%     29
+  90%    116
+  95%   1027
+  98%   1227
+  99%   1429
+ 100%   4715 (longest request)

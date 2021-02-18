@@ -7,7 +7,6 @@ import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.model.PaymentError;
-import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.configuration.SerializerConfig;
 import io.javalin.http.Context;
 import lombok.NonNull;
@@ -15,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
+import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
 
@@ -22,13 +22,17 @@ import java.time.ZonedDateTime;
 @Slf4j
 public class PaymentRESTController {
     @NonNull PayOrder payOrder;
-    @NonNull PaymentRepository paymentRepository;
 
     private final Gson gson = SerializerConfig.buildSerializer();
 
     public void handlePayment(Context context) {
         var request = getPaymentRequestFromPayload(context.body());
 
+        if (request == null || !request.isValid()) {
+            context.status(HttpStatus.BAD_REQUEST_400)
+                    .result("Payload containing the full payment request is mandatory");
+            return;
+        }
         if (request.getOrderId() == null || request.getOrderId().isBlank()) {
             context.status(HttpStatus.BAD_REQUEST_400)
                     .result("Order id is mandatory");
@@ -39,23 +43,21 @@ public class PaymentRESTController {
                     .result("Amount must be greater than zero");
             return;
         }
-        if (request.getClientId() == null) {
+        if (!request.getClientId().isValid()) {
             context.status(HttpStatus.BAD_REQUEST_400)
                     .result("Client id is mandatory");
-            return;
-        }
-
-        var requestedCard = paymentRepository.findCardByClient(request.clientId);
-        if (requestedCard.isEmpty()) {
-            context.status(HttpStatus.NOT_FOUND_404)
-                    .result(String.format("Client %s was not found or has no associated card", request.clientId.getValue()));
             return;
         }
 
         // Pay order with id 123, total 342.09 with card number 9999 from client X
         Card.Receipt receipt;
         try {
-            receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+            receipt = payOrder.using(request.clientId, Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        } catch (ClientId.ClientNotFound e) {
+            e.printStackTrace();
+            context.status(HttpStatus.NOT_FOUND_404)
+                    .result(e.getMessage());
+            return;
         } catch (PaymentError e) {
             e.printStackTrace();
             context.status(HttpStatus.PAYMENT_REQUIRED_402)
@@ -87,6 +89,12 @@ public class PaymentRESTController {
         @NonNull Double amount;
         @NonNull String orderId;
         @NonNull ClientId clientId;
+
+        public boolean isValid() {
+            return (amount != null &&
+                    orderId != null &&
+                    clientId != null);
+        }
     }
 
     @Value

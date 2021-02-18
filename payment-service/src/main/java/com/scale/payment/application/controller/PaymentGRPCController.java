@@ -11,12 +11,12 @@ import com.scale.payment.domain.model.Card;
 import com.scale.payment.domain.model.ClientId;
 import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.model.PaymentError;
-import com.scale.payment.domain.repository.PaymentRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.http.HttpStatus;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -25,7 +25,6 @@ import java.time.ZonedDateTime;
 @Slf4j
 public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImplBase {
     @NonNull PayOrder payOrder;
-    @NonNull PaymentRepository paymentRepository;
 
     @Override
     public void pay(PaymentRequestMessage request, StreamObserver<OrderPaymentDetailMessage> responseObserver) {
@@ -48,18 +47,16 @@ public class PaymentGRPCController extends PaymentServiceGrpc.PaymentServiceImpl
             return;
         }
 
-        var requestedCard = paymentRepository.findCardByClient(new ClientId(request.getClientId()));
-        if (requestedCard.isEmpty()) {
-            responseObserver.onError(Status.NOT_FOUND
-                    .withDescription(String.format("Client %s was not found or has no associated card", request.getClientId()))
-                    .asRuntimeException());
-            return;
-        }
-
         // Pay order with id 123, total 342.09 with card number 9999 from client X
         Card.Receipt receipt;
         try {
-            receipt = payOrder.using(requestedCard.get(), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+            receipt = payOrder.using(new ClientId(request.getClientId()), Order.OrderId.of(request.getOrderId()), Money.of(request.getAmount()));
+        } catch (ClientId.ClientNotFound e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(e.getMessage())
+                    .asRuntimeException());
+            return;
         } catch (PaymentError e) {
             e.printStackTrace();
             responseObserver.onError(Status.INTERNAL

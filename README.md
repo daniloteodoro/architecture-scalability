@@ -1,10 +1,11 @@
 # architecture_scalability
 
 Main purpose of this project is to show in numbers how the architectural choice and deployment affect performance and scalability in a distributed system.
-REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for higher throughput and low latency.
+REST and gRPC, with synchronous and reactive implementations (async, non-blocking), in search for high throughput and low latency.<br>
+I decided to build this project to further learn on these topics, and have a solid foundation to compare when future optimizations are used.
 
 ### The idea
-I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment setups. 
+I wanted to see metrics like throughput, latency, and CPU usage, in various loads, with different architecture and deployment setups.<br> 
 
 ![Dashboard in Kibana](https://github.com/daniloteodoro/architecture_scalability/blob/main/docs/scalability_dashboard_730tps.png?raw=true)
 
@@ -73,7 +74,7 @@ Enable the http module and log and configure it like in `/metricbeat/http.yml`
 Build the projects <br>
 ./architecture_scalability$ `mvn clean install`
 
-Then start the docker files inside directories `checkout-job/docker` and `elk`, and run each service, although the easier way is using the convenience script below: <br>
+Then start the docker files inside directories `checkout-job/docker`, `payment-service/docker`, `order-service/docker` and `elk`, and run each service, although the easiest way is using the convenience script below: <br>
 `./architecture_scalability$ ./deployment/local_deploy.sh`
 
 After around 1 minute the services should be ready - just be aware that fist run will take much longer, as Docker has to pull all images for RabbitMq, MongoDb, ELK, etc. 
@@ -115,6 +116,6 @@ After that, create a new Record and fill in the section "Value/Route traffic to"
 
 You now should be able to reach your deployment using your custom domain, and the ingress controller will continue redirecting to services as usual:
 
-Example using the test domain _scale-order.tk_ with the new record called "apps" <br>
-* Kibana: http://apps.scale-order.tk/
-* Management API: http://apps.scale-order.tk/shopping-cart/samples/10
+Example using the test domain _my-domain.tk_ with the new record called "apps" <br>
+* Kibana: http://apps.my-domain.tk/
+* Management API: http://apps.my-domain.tk/shopping-cart/samples/10

@@ -36,8 +36,4 @@ public class PaymentServiceUsingREST implements PayOrder {
         return response.getBody();
     }
 
-    private PaymentDto.PaymentRequestDto getPaymentRequestFromPayload(String payload) {
-        return gson.fromJson(payload, PaymentDto.PaymentRequestDto.class);
-    }
-
 }

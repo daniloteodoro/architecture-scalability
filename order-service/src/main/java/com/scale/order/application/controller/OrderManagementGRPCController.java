@@ -2,6 +2,7 @@ package com.scale.order.application.controller;
 
 import com.google.protobuf.Empty;
 import com.google.protobuf.Timestamp;
+import com.scale.domain.DomainError;
 import com.scale.domain.Order;
 import com.scale.domain.Product;
 import com.scale.domain.ShoppingCart;
@@ -79,7 +80,21 @@ public class OrderManagementGRPCController extends OrderServiceGrpc.OrderService
             return;
         }
 
-        confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getOrderId()), request.getPaymentReceipt());
+        try {
+            confirmOrder.withPaymentReceipt(Order.OrderId.of(request.getOrderId()), request.getPaymentReceipt());
+        } catch (DomainError e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription(e.getMessage())
+                    .asRuntimeException());
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Unknown error while confirming order " + request.getOrderId())
+                    .asRuntimeException());
+            return;
+        }
 
         log.info("Order {} was confirmed using gRPC", request.getOrderId());
 

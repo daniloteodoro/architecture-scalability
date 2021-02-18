@@ -11,12 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class PaymentRepositoryInMemory implements PaymentRepository {
-    private final Map<ClientId, Card> clientSelectedCard = new HashMap<>();
-    private final Map<String/*Card number*/, Card> cards = new HashMap<>();
-    private final Map<String/*OrderId*/, Map<Double/*Amount*/, Card.Receipt>> receipts = new HashMap<>();
+    private final ConcurrentMap<ClientId, Card> clientSelectedCard = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String/*Card number*/, Card> cards = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String/*OrderId*/, Map<Double/*Amount*/, Card.Receipt>> receipts = new ConcurrentHashMap<>();
 
     @Override
     public void addReceipt(Card.Receipt receipt) {

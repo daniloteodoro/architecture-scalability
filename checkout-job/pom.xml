@@ -16,6 +16,18 @@
         <repository-base>${env.DOCKERHUB_USER}</repository-base>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-bom</artifactId>
+                <version>2020.0.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>io.grpc</groupId>
@@ -38,13 +50,17 @@
             <version>6.0.53</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Queue -->
+        <!-- Queue (blocking) -->
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
             <version>5.9.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <!-- Queue (non-blocking) -->
+        <dependency>
+            <groupId>io.projectreactor.rabbitmq</groupId>
+            <artifactId>reactor-rabbitmq</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -66,7 +82,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.11.2</version>
         </dependency>
-        <!-- Http client -->
+        <!-- Http client (blocking) -->
         <dependency>
             <groupId>com.konghq</groupId>
             <artifactId>unirest-java</artifactId>
@@ -77,6 +93,16 @@
             <groupId>com.konghq</groupId>
             <artifactId>unirest-object-mappers-gson</artifactId>
             <version>3.11.05</version>
+        </dependency>
+
+        <!-- Reactive using Project Reactor -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
         </dependency>
 
         <dependency>

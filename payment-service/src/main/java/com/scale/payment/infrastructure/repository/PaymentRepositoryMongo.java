@@ -67,21 +67,26 @@ public class PaymentRepositoryMongo implements PaymentRepository {
     @Override
     public void addReceipt(Card.Receipt receipt) {
 
-        final ClientSession newSession = mongoClient.startSession();
-        TransactionOptions txnOptions = TransactionOptions.builder()
-                .readPreference(ReadPreference.primary())
-                .readConcern(ReadConcern.SNAPSHOT)
-                .writeConcern(WriteConcern.MAJORITY)
-                .build();
+//        final ClientSession newSession = mongoClient.startSession();
+//        TransactionOptions txnOptions = TransactionOptions.builder()
+//                .readPreference(ReadPreference.primary())
+//                .readConcern(ReadConcern.SNAPSHOT)
+//                .writeConcern(WriteConcern.MAJORITY)
+//                .build();
+//
+//        TransactionBody<String> changes = () -> {
+//            receipts.insertOne(serializePaymentReceipt(receipt));
+//            cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
+//                    set("limit", receipt.getCard().getLimit().getValue().doubleValue()));
+//            return "done";
+//        };
 
-        TransactionBody<String> changes = () -> {
-            receipts.insertOne(serializePaymentReceipt(receipt));
-            cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
-                    set("limit", receipt.getCard().getLimit().getValue().doubleValue()));
-            return "done";
-        };
+        // Commented to stay in sync with the reactive version - which lacks this transaction support https://jira.mongodb.org/browse/JAVA-3539
+//        newSession.withTransaction(changes, txnOptions);
 
-        newSession.withTransaction(changes, txnOptions);
+        receipts.insertOne(serializePaymentReceipt(receipt));
+        cards.updateOne(eq("_id", new ObjectId(receipt.getCard().getNumber())),
+                set("limit", receipt.getCard().getLimit().getValue().doubleValue()));
 
         log.info("Receipt {} with reference to {} was stored in Mongo", receipt.getNumber(), receipt.getReference());
     }

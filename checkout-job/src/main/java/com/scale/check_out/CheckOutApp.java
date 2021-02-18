@@ -1,6 +1,7 @@
 package com.scale.check_out;
 
 import com.scale.check_out.application.controller.MetricsController;
+import com.scale.check_out.application.controller.QueueConsumer;
 import com.scale.check_out.application.controller.ShoppingCartListener;
 import com.scale.check_out.application.usecases.PlaceOrder;
 import com.scale.check_out.infrastructure.configuration.SerializerConfig;
@@ -9,8 +10,8 @@ import com.scale.check_out.infrastructure.order.OrderServiceChannelHandler;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingGRPC;
 import com.scale.check_out.infrastructure.order.OrderServiceUsingREST;
 import com.scale.check_out.infrastructure.payment.PaymentServiceChannelHandler;
-import com.scale.check_out.infrastructure.payment.PaymentServiceUsingREST;
 import com.scale.check_out.infrastructure.payment.PaymentServiceUsingGRPC;
+import com.scale.check_out.infrastructure.payment.PaymentServiceUsingREST;
 import com.scale.check_out.infrastructure.queue.RabbitMQChannelHandler;
 import io.javalin.Javalin;
 import lombok.NonNull;
@@ -21,21 +22,23 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class CheckOutApp {
     @NonNull MetricsController metricsController;
-    @NonNull ShoppingCartListener shoppingCartListener;
+    @NonNull QueueConsumer queueConsumer;
 
     private Javalin app = null;
+    private static final String queueConnectionUrl =
+            System.getenv().getOrDefault("AMQP_URL", "amqp://guest:guest@localhost");
 
     public void startOnPort(int port) {
         app = Javalin.create().start(port);
         app.get("/metrics", metricsController::handleMetrics);
 
-        shoppingCartListener.start();
+        queueConsumer.start();
 
         log.info("Check-out job started successfully");
     }
 
     public void stop() {
-        shoppingCartListener.stop();
+        queueConsumer.stop();
         app.stop();
     }
 
@@ -49,8 +52,8 @@ public class CheckOutApp {
         var paymentServiceChannelHandler = new PaymentServiceChannelHandler();
         var paymentServiceGRPC = new PaymentServiceUsingGRPC(paymentServiceChannelHandler.createBlockingStub());
         var placeOrder = new PlaceOrder(orderServiceGRPC, paymentServiceGRPC, orderServiceGRPC, inMemoryMetricsWatcher);
-        var queueManager = new RabbitMQChannelHandler();
-        var shoppingCartListener = new ShoppingCartListener(queueManager.createChannel(), inMemoryMetricsWatcher, placeOrder);
+        var queueManager = new RabbitMQChannelHandler(queueConnectionUrl);
+        var shoppingCartListener = new ShoppingCartListener(queueManager, inMemoryMetricsWatcher, placeOrder);
 
         return new CheckOutApp(metricsController, shoppingCartListener);
     }
@@ -71,8 +74,8 @@ public class CheckOutApp {
         var paymentServiceREST = new PaymentServiceUsingREST(paymentApiHost, 8100);
         var placeOrder = new PlaceOrder(orderServiceREST, paymentServiceREST, orderServiceREST, inMemoryMetricsWatcher);
 
-        var queueManager = new RabbitMQChannelHandler();
-        var shoppingCartListener = new ShoppingCartListener(queueManager.createChannel(), inMemoryMetricsWatcher, placeOrder);
+        var queueManager = new RabbitMQChannelHandler(queueConnectionUrl);
+        var shoppingCartListener = new ShoppingCartListener(queueManager, inMemoryMetricsWatcher, placeOrder);
 
         return new CheckOutApp(metricsController, shoppingCartListener);
     }

@@ -6,6 +6,7 @@ import com.scale.check_out.application.services.CheckOutError;
 import com.scale.check_out.application.usecases.PlaceOrder;
 import com.scale.check_out.domain.metrics.BusinessMetrics;
 import com.scale.check_out.infrastructure.configuration.SerializerConfig;
+import com.scale.check_out.infrastructure.queue.RabbitMQChannelHandler;
 import com.scale.domain.ShoppingCart;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,23 +18,26 @@ import java.util.Collections;
 
 @RequiredArgsConstructor
 @Slf4j
-public class ShoppingCartListener {
+public class ShoppingCartListener implements QueueConsumer {
     private final static String SHOPPING_CART_QUEUE = "shoppingcart.queue";
 
     private final Gson gson = SerializerConfig.buildSerializer();
     private String consumeTag = null;
+    private Channel current = null;
 
-    @NonNull Channel channel;
+    @NonNull RabbitMQChannelHandler queueManager;
     @NonNull BusinessMetrics metrics;
     @NonNull PlaceOrder placeOrder;
 
+    @Override
     public void start() {
         if (consumeTag != null)
-            throw new CheckOutError("Listener is already started. Use method 'stop()' before re-starting.");
+            throw new CheckOutError("Listener has already been started. Use method 'stop()' before re-starting.");
         try {
-            // start listening
-            channel.queueDeclare(SHOPPING_CART_QUEUE, true, false, false, Collections.emptyMap());
-            channel.basicConsume(SHOPPING_CART_QUEUE,
+            this.current = queueManager.createChannel();
+            this.current.queueDeclare(SHOPPING_CART_QUEUE, true, false, false, Collections.emptyMap());
+            this.current.basicQos(100, true);
+            consumeTag = this.current.basicConsume(SHOPPING_CART_QUEUE,
                     // Delivery callback
                     (s, delivery) -> {
                         try {
@@ -47,7 +51,7 @@ public class ShoppingCartListener {
                         } catch (Exception e) {
                             e.printStackTrace();
                         } finally {
-                            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                            this.current.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                         }
                     },
                     // Cancel callback
@@ -59,9 +63,10 @@ public class ShoppingCartListener {
         }
     }
 
+    @Override
     public void stop() {
         try {
-            channel.basicCancel(consumeTag);
+            this.current.basicCancel(consumeTag);
             consumeTag = null;
         } catch (IOException e) {
             throw new CheckOutError("Failure stopping channel: " + e.getMessage());
