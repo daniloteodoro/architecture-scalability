@@ -2,9 +2,6 @@ package com.scale.payment;
 
 import com.scale.payment.application.controller.PaymentGRPCController;
 import com.scale.payment.application.usecases.PayOrder;
-import com.scale.payment.domain.model.Card;
-import com.scale.payment.domain.model.ClientId;
-import com.scale.payment.domain.model.Money;
 import com.scale.payment.domain.repository.PaymentRepository;
 import com.scale.payment.infrastructure.repository.PaymentRepositoryInMemory;
 import io.grpc.ManagedChannelBuilder;
